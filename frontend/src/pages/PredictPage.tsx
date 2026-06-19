@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Target, CheckCircle, Clock, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { matchApi, predictionApi } from '../services/api';
-import { Match, Prediction, Round, ROUND_LABELS, ROUND_POINTS, ROUNDS_ORDER } from '../types';
+import type { Match, Prediction, Round } from '../types';
+import { ROUND_LABELS, ROUND_POINTS, ROUNDS_ORDER } from '../types';
 
 export default function PredictPage() {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -70,7 +71,7 @@ export default function PredictPage() {
   };
 
   const roundPredCount = roundMatches.filter(m => predictions[m.id]).length;
-  const roundSavedCount = roundMatches.filter(m => savedPredictions[m.id]).length;
+
 
   if (loading) {
     return (

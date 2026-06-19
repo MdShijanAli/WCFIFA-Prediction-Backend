@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { Trophy, Target, BarChart2, TrendingUp, AlertCircle, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { leaderboardApi, matchApi, predictionApi } from '../services/api';
-import { LeaderboardEntry, Match, Prediction, ROUND_LABELS, ROUND_POINTS, ROUNDS_ORDER } from '../types';
+import type { LeaderboardEntry, Match, Prediction } from '../types';
+import { ROUND_LABELS, ROUND_POINTS, ROUNDS_ORDER } from '../types';
 
 export default function DashboardPage() {
   const { user } = useAuth();

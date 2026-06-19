@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, Medal, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { leaderboardApi } from '../services/api';
-import { LeaderboardEntry } from '../types';
+import type { LeaderboardEntry } from '../types';
 import { useAuth } from '../context/AuthContext';
 
 export default function LeaderboardPage() {

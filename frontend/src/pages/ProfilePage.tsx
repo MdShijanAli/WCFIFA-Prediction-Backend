@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { User, Phone, Mail, CheckCircle, Shield, CreditCard } from 'lucide-react';
+import { Phone, Mail, CheckCircle, Shield, CreditCard } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { authApi, paymentApi } from '../services/api';
