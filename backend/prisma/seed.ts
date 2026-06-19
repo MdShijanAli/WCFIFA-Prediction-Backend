@@ -38,9 +38,14 @@ const teams = [
 ];
 
 async function main() {
-  console.log('Seeding database...');
+  // Skip if already seeded
+  const existing = await prisma.team.count();
+  if (existing > 0) {
+    console.log('Database already seeded, skipping.');
+    return;
+  }
 
-  await prisma.team.deleteMany();
+  console.log('Seeding database...');
 
   const createdTeams = await Promise.all(
     teams.map(team => prisma.team.create({ data: team }))
