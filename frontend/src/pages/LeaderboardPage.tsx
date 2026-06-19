@@ -24,7 +24,7 @@ export default function LeaderboardPage() {
       setTotalPages(lbRes.data.pagination.pages);
       setTotal(lbRes.data.pagination.total);
       setMyRank(myRes.data.entry);
-    } catch (console.error) {} finally { setLoading(false); }
+    } catch { } finally { setLoading(false); }
   };
 
   useEffect(() => { fetchLeaderboard(page); }, [page]);
