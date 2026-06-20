@@ -33,7 +33,7 @@ export const initiatePayment = async (req: Request, res: Response): Promise<void
     // Use demo mode when in development or SSLCommerz not configured
     if (config.nodeEnv === 'development' || !config.sslcz.storeId) {
       res.json({
-        paymentUrl: `${config.frontendUrl}/payment/confirm?txnId=${transactionId}&demo=true`,
+        paymentUrl: `${config.frontendUrl}/payment?txnId=${transactionId}&demo=true`,
         transactionId,
         amount: config.registrationFee,
         currency: 'BDT',
