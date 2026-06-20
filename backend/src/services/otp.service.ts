@@ -52,8 +52,8 @@ export const verifyOTP = async (
 };
 
 export const sendSMSOTP = async (phone: string, code: string): Promise<void> => {
-  if (isDev) {
-    console.log(`[DEV] SMS OTP to ${phone}: ${code}`);
+  if (isDev || !config.twilio.accountSid?.startsWith('AC')) {
+    console.log(`[OTP] SMS to ${phone}: ${code}`);
     return;
   }
 
@@ -66,8 +66,8 @@ export const sendSMSOTP = async (phone: string, code: string): Promise<void> => 
 };
 
 export const sendEmailOTP = async (email: string, code: string, type: string): Promise<void> => {
-  if (isDev) {
-    console.log(`[DEV] Email OTP to ${email}: ${code}`);
+  if (isDev || !config.smtp.host) {
+    console.log(`[OTP] Email to ${email}: ${code}`);
     return;
   }
 
