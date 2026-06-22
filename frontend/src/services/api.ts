@@ -70,4 +70,11 @@ export const leaderboardApi = {
   getTop: () => api.get("/leaderboard/top"),
 };
 
+export const sponsorVideoApi = {
+  getCurrent: () => api.get("/sponsor-video/current"),
+  start: () => api.post("/sponsor-video/start"),
+  complete: (sessionId: string) =>
+    api.post("/sponsor-video/complete", { watchSessionId: sessionId }),
+};
+
 export default api;

@@ -2,37 +2,169 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trophy, Target, BarChart2, TrendingUp, AlertCircle, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { leaderboardApi, matchApi, predictionApi, upcomingMatchesApi } from '../services/api';
+import { leaderboardApi, predictionApi, sponsorVideoApi, upcomingMatchesApi } from '../services/api';
 import type { LeaderboardEntry, Match, Prediction } from '../types';
 import { ROUND_LABELS, ROUND_POINTS, ROUNDS_ORDER } from '../types';
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, accessUnlocked, refreshAuth } = useAuth();
   const [myRank, setMyRank] = useState<LeaderboardEntry | null>(null);
   const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
   const [myPredictions, setMyPredictions] = useState<Prediction[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // sponsor video state
+  const [video, setVideo] = useState<any>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  console.log('Access Unlocked:', accessUnlocked);
+
   useEffect(() => {
-    if (!user?.hasPaid) { setLoading(false); return; }
+    if (!accessUnlocked) {
+      setLoading(false);
+      loadVideo();
+      return;
+    }
+
     Promise.all([
       leaderboardApi.getMyRank().then(r => setMyRank(r.data.entry)),
       upcomingMatchesApi.getAll().then(r => setUpcomingMatches(r.data.matches)),
       predictionApi.getMyPredictions().then(r => setMyPredictions(r.data.predictions)),
-    ]).catch(console.error).finally(() => setLoading(false));
-  }, [user]);
+    ])
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [accessUnlocked]);
 
-  const totalPossiblePoints = ROUNDS_ORDER.reduce((sum, r) => sum + ROUND_POINTS[r], 0);
+  const loadVideo = async () => {
+    try {
+      const res = await sponsorVideoApi.getCurrent();
+      setVideo(res.data.video);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-  if (!user?.hasPaid) {
+  const getEmbedUrl = (url: string) => {
+    const match = url.match(/(?:youtu\.be\/|v=)([^&]+)/);
+    return match
+      ? `https://www.youtube.com/embed/${match[1]}`
+      : url;
+  };
+
+  const startWatch = async () => {
+    try {
+      const res = await sponsorVideoApi.start();
+
+      const id = res.data.watchSessionId;
+      setSessionId(id);
+
+      const duration = video?.durationSeconds || 15;
+      setTimeLeft(duration);
+      setShowModal(true);
+
+      const interval = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            completeWatch(id); // 👈 PASS DIRECT
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const completeWatch = async (id: string) => {
+    try {
+      console.log('Completing session:', id);
+
+      await sponsorVideoApi.complete(id);
+
+      await refreshAuth();
+
+      setShowModal(false);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  if (!accessUnlocked) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="card max-w-md w-full text-center">
           <AlertCircle className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-white mb-2">Payment Required</h2>
-          <p className="text-gray-400 mb-6">Complete your registration payment to start predicting!</p>
-          <Link to="/payment" className="btn-primary inline-block">Complete Payment →</Link>
+
+          <h2 className="text-xl font-bold text-white mb-2">
+            Unlock Access
+          </h2>
+
+          <p className="text-gray-400 mb-6">
+            Watch a short sponsored video to continue
+          </p>
+
+          {video && (
+            <div className="bg-gray-800 p-3 rounded-xl mb-4 text-left">
+              <p className="text-white font-semibold">{video.title}</p>
+              <p className="text-gray-400 text-sm">{video.sponsorName}</p>
+              <p className="text-gray-500 text-xs">
+                Duration: {video.durationSeconds}s
+              </p>
+            </div>
+          )}
+
+          <button
+            onClick={startWatch}
+            className="btn-primary w-full"
+          >
+            Watch Video & Unlock
+          </button>
         </div>
+
+        {/* VIDEO MODAL */}
+        {showModal && video && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+            <div className="bg-gray-900 p-4 rounded-xl w-full max-w-2xl">
+
+              <div className="flex justify-between mb-2">
+                <h3 className="text-white font-bold">
+                  {video.title}
+                </h3>
+
+                <span className="text-red-400 font-bold">
+                  {timeLeft}s
+                </span>
+              </div>
+
+              <iframe
+                className="w-full h-64 rounded-lg"
+                src={getEmbedUrl(video.videoUrl)}
+                allow="autoplay"
+              />
+
+              <div className="w-full bg-gray-700 h-2 rounded mt-3">
+                <div
+                  className="bg-green-500 h-2 transition-all"
+                  style={{
+                    width: `${((video.durationSeconds - timeLeft) /
+                      video.durationSeconds) *
+                      100
+                      }%`,
+                  }}
+                />
+              </div>
+
+              <p className="text-gray-400 text-sm mt-2">
+                Please wait until video completes...
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -41,7 +173,7 @@ export default function DashboardPage() {
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">Welcome, {user.name}! 👋</h1>
+        <h1 className="text-2xl font-bold text-white">Welcome, {user?.name}! 👋</h1>
         <p className="text-gray-400 mt-1">Here's your prediction competition overview</p>
       </div>
 
