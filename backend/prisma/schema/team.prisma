@@ -1,0 +1,13 @@
+model Team {
+    id        String   @id @default(uuid())
+    name      String   @unique
+    code      String   @unique
+    flagUrl   String?
+    group     String?
+    createdAt DateTime @default(now())
+
+    homeMatches Match[] @relation("HomeTeam")
+    awayMatches Match[] @relation("AwayTeam")
+
+    @@map("teams")
+}

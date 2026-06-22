@@ -1,0 +1,17 @@
+model LeaderboardEntry {
+    id          String   @id @default(uuid())
+    userId      String   @unique
+    totalPoints Int      @default(0)
+    rank        Int?
+    r32Points   Int      @default(0)
+    r16Points   Int      @default(0)
+    r8Points    Int      @default(0)
+    qfPoints    Int      @default(0)
+    sfPoints    Int      @default(0)
+    finalPoints Int      @default(0)
+    updatedAt   DateTime @updatedAt
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@map("leaderboard")
+}

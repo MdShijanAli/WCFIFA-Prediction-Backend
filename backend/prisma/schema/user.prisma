@@ -1,0 +1,21 @@
+model User {
+    id              String   @id @default(uuid())
+    name            String
+    dob             DateTime
+    gender          Gender
+    phone           String   @unique
+    email           String?  @unique
+    password        String
+    isPhoneVerified Boolean  @default(false)
+    isEmailVerified Boolean  @default(false)
+    isActive        Boolean  @default(true)
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+
+    otps        OTP[]
+    payment     Payment?
+    predictions Prediction[]
+    leaderboard LeaderboardEntry?
+
+    @@map("users")
+}

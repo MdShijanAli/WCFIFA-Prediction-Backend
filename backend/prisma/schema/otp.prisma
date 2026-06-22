@@ -1,0 +1,14 @@
+model OTP {
+    id        String   @id @default(uuid())
+    userId    String
+    code      String
+    type      String // PHONE_VERIFY, EMAIL_VERIFY, FORGOT_PASSWORD
+    target    String // phone or email
+    expiresAt DateTime
+    used      Boolean  @default(false)
+    createdAt DateTime @default(now())
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@map("otps")
+}
