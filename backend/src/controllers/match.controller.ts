@@ -79,7 +79,7 @@ export const getUpcomingMatches = async (
         },
         include: { homeTeam: true, awayTeam: true },
         orderBy: { scheduledAt: "asc" },
-        take: limit,
+        take: 5,
       }),
     ]);
 
