@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trophy, Target, BarChart2, TrendingUp, AlertCircle, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { leaderboardApi, matchApi, predictionApi } from '../services/api';
+import { leaderboardApi, matchApi, predictionApi, upcomingMatchesApi } from '../services/api';
 import type { LeaderboardEntry, Match, Prediction } from '../types';
 import { ROUND_LABELS, ROUND_POINTS, ROUNDS_ORDER } from '../types';
 
@@ -17,7 +17,7 @@ export default function DashboardPage() {
     if (!user?.hasPaid) { setLoading(false); return; }
     Promise.all([
       leaderboardApi.getMyRank().then(r => setMyRank(r.data.entry)),
-      matchApi.getAll({ status: 'SCHEDULED' }).then(r => setUpcomingMatches(r.data.matches.slice(0, 5))),
+      upcomingMatchesApi.getAll().then(r => setUpcomingMatches(r.data.matches)),
       predictionApi.getMyPredictions().then(r => setMyPredictions(r.data.predictions)),
     ]).catch(console.error).finally(() => setLoading(false));
   }, [user]);
@@ -131,12 +131,18 @@ export default function DashboardPage() {
                 <div key={match.id} className="bg-gray-800 rounded-xl p-3">
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
                     <span className="bg-gray-700 px-2 py-0.5 rounded">{ROUND_LABELS[match.round]}</span>
-                    <span>{new Date(match.scheduledAt).toLocaleDateString()}</span>
+                    <span>{new Date(match.scheduledAt).toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-white text-sm font-medium">{match.homeTeam.name}</span>
+                    <div>
+                      <img src={match.homeTeam.flagUrl} alt={match.homeTeam.name} className="w-8 h-auto mx-auto" />
+                      <span className="text-white text-sm font-medium">{match.homeTeam.name}</span>
+                    </div>
                     <span className="text-gray-600 text-xs font-bold">VS</span>
-                    <span className="text-white text-sm font-medium">{match.awayTeam.name}</span>
+                    <div>
+                      <img src={match.awayTeam.flagUrl} alt={match.awayTeam.name} className="w-8 h-auto mx-auto" />
+                      <span className="text-white text-sm font-medium">{match.awayTeam.name}</span>
+                    </div>
                   </div>
                 </div>
               ))}

@@ -224,7 +224,7 @@ export default function PredictPage() {
 }
 
 function TeamButton({ team, selected, correct, predicted, locked, onClick }: {
-  team: { id: string; name: string; code: string };
+  team: { id: string; name: string; code: string; flagUrl: string };
   selected: boolean;
   correct?: boolean;
   predicted?: boolean;
@@ -244,7 +244,9 @@ function TeamButton({ team, selected, correct, predicted, locked, onClick }: {
       disabled={locked}
       className={`w-full border-2 rounded-xl p-4 text-center transition-all ${getStyle()} ${!locked ? 'cursor-pointer' : 'cursor-default'}`}
     >
-      <div className="text-2xl mb-2">🏳️</div>
+      <div className="text-2xl mb-2">
+        <img src={team.flagUrl} alt={team.name} className="w-8 h-auto mx-auto" />
+      </div>
       <div className="text-sm font-bold text-white">{team.name}</div>
       <div className="text-xs text-gray-500 mt-1">{team.code}</div>
       {predicted && (
