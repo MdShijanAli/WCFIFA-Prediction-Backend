@@ -16,7 +16,7 @@ export const getLeaderboard = async (
         take: limit,
         orderBy: { totalPoints: "desc" },
         include: {
-          user: { select: { name: true, gender: true } },
+          user: { select: { name: true, phone: true, gender: true } },
         },
       }),
       prisma.leaderboardEntry.count(),

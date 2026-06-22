@@ -11,7 +11,7 @@ const router = Router();
 //   Authorization: Bearer <ADMIN_SECRET>
 // OR use a proper role-based auth middleware.
 
-const requireAdmin = (
+export const requireAdmin = (
   req: Request,
   res: Response,
   next: NextFunction,

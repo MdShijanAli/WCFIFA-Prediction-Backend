@@ -1,0 +1,33 @@
+model SponsorVideo {
+    id              String   @id @default(uuid())
+    title           String
+    description     String
+    videoUrl        String
+    thumbnailUrl    String
+    durationSeconds Int
+    sponsorName     String
+    isActive        Boolean  @default(false)
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+
+    watchHistories VideoWatchHistory[]
+
+    @@map("sponsor_videos")
+}
+
+model VideoWatchHistory {
+    id               String    @id @default(uuid())
+    userId           String
+    sponsorVideoId   String?
+    watchStartedAt   DateTime
+    watchCompletedAt DateTime?
+    completed        Boolean   @default(false)
+    createdAt        DateTime  @default(now())
+
+    user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+    sponsorVideo SponsorVideo? @relation(fields: [sponsorVideoId], references: [id], onDelete: SetNull)
+
+    @@index([userId, completed])
+    @@index([sponsorVideoId])
+    @@map("video_watch_histories")
+}

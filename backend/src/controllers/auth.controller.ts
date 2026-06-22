@@ -35,6 +35,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         dob: new Date(dob),
         gender,
         phone,
+        role: "ADMIN",
         email: email || null,
         password: hashedPassword,
       },
@@ -135,6 +136,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         phone: user.phone,
         email: user.email,
         gender: user.gender,
+        accessUnlocked: user.accessUnlocked,
+        accessUnlockedAt: user.accessUnlockedAt,
         isPhoneVerified: user.isPhoneVerified,
         isEmailVerified: user.isEmailVerified,
         hasPaid: payment?.status === "COMPLETED",
@@ -269,6 +272,9 @@ export const getProfile = async (
         gender: true,
         phone: true,
         email: true,
+        role: true,
+        accessUnlocked: true,
+        accessUnlockedAt: true,
         isPhoneVerified: true,
         isEmailVerified: true,
         createdAt: true,
@@ -276,8 +282,10 @@ export const getProfile = async (
     });
 
     const payment = await prisma.payment.findUnique({ where: { userId } });
-    res.json({ user, hasPaid: payment?.status === "COMPLETED" });
+    res.json({ success: true, message: "Profile fetched successfully", user });
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch profile" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch profile" });
   }
 };

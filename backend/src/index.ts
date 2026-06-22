@@ -27,6 +27,7 @@ import matchRoutes from "./routes/match.routes";
 import predictionRoutes from "./routes/prediction.routes";
 import leaderboardRoutes from "./routes/leaderboard.routes";
 import adminRoutes from "./routes/admin.routes"; // ← NEW
+import { sponsorVideoRoutes } from "./routes/sponsor-video.routes";
 
 const app = express();
 
@@ -58,6 +59,7 @@ app.use("/api/matches", matchRoutes);
 app.use("/api/predictions", predictionRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
 app.use("/api/admin", adminRoutes); // ← NEW
+app.use("/api/sponsor-video", sponsorVideoRoutes);
 
 app.get("/api/health", (_, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });

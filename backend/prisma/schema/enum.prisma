@@ -4,6 +4,11 @@ enum Gender {
     OTHER
 }
 
+enum UserRole {
+    USER
+    ADMIN
+}
+
 enum PaymentStatus {
     PENDING
     COMPLETED
