@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "users" ALTER COLUMN "dob" DROP NOT NULL,
+ALTER COLUMN "gender" DROP NOT NULL;

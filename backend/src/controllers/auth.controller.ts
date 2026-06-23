@@ -11,13 +11,18 @@ import { prisma } from "../lib/prisma";
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, dob, gender, phone, email, password } = req.body;
+    const { name, phone, email, password } = req.body;
+
+    console.log("Req body: ", req.body);
 
     const existingPhone = await prisma.user.findUnique({ where: { phone } });
     if (existingPhone) {
       res.status(400).json({ message: "Phone number already registered" });
       return;
     }
+
+    console.log("This Phone is: ", phone);
+    console.log("This Phone is existingPhone: ", existingPhone);
 
     if (email) {
       const existingEmail = await prisma.user.findUnique({ where: { email } });
@@ -32,10 +37,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const user = await prisma.user.create({
       data: {
         name,
-        dob: new Date(dob),
-        gender,
         phone,
-        role: "ADMIN",
+        role: "USER",
         email: email || null,
         password: hashedPassword,
       },

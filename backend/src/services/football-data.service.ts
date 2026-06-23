@@ -1,21 +1,25 @@
 // backend/src/services/football-data.service.ts
-// Fetches matches from football-data.org API v4 and syncs to DB
 
 import { MatchStatus, Round } from "../generated/prisma/enums";
 import { config } from "../config";
 import { prisma } from "../lib/prisma";
+import {
+  scoreMatchPredictions,
+  recalculateLeaderboardRanks,
+  ScoringResult,
+} from "./scoring.service";
 
 const FOOTBALL_DATA_API = "https://api.football-data.org/v4";
 const API_KEY = config.apiToken || "";
 
-// ─── Type definitions from football-data.org v4 ──────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface FDTeam {
   id: number;
   name: string | null;
   shortName: string | null;
-  tla: string | null; // 3-letter code e.g. "BRA"
-  crest: string | null; // flag/crest image URL
+  tla: string | null;
+  crest: string | null;
 }
 
 interface FDScore {
@@ -53,7 +57,7 @@ interface FDMatchesResponse {
   matches: FDMatch[];
 }
 
-// ─── Stage → Round mapping ────────────────────────────────────────────────────
+// ─── Mappings ─────────────────────────────────────────────────────────────────
 
 const STAGE_TO_ROUND: Record<string, Round> = {
   ROUND_OF_32: Round.ROUND_OF_32,
@@ -69,8 +73,6 @@ const STAGE_TO_ROUND: Record<string, Round> = {
   THIRD_PLACE: Round.SEMI_FINAL,
 };
 
-// ─── Status mapping ───────────────────────────────────────────────────────────
-
 const STATUS_MAP: Record<string, MatchStatus> = {
   SCHEDULED: MatchStatus.SCHEDULED,
   TIMED: MatchStatus.SCHEDULED,
@@ -83,16 +85,14 @@ const STATUS_MAP: Record<string, MatchStatus> = {
   SUSPENDED: MatchStatus.CANCELLED,
 };
 
-// ─── HTTP helper ──────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 async function fetchFromAPI<T>(
   endpoint: string,
   params?: Record<string, string>,
 ): Promise<T> {
   if (!API_KEY) {
-    throw new Error(
-      "FOOTBALL_DATA_API_KEY is not set in environment variables",
-    );
+    throw new Error("FOOTBALL_DATA_API_KEY is not set");
   }
 
   const url = new URL(`${FOOTBALL_DATA_API}${endpoint}`);
@@ -101,21 +101,16 @@ async function fetchFromAPI<T>(
   }
 
   const res = await fetch(url.toString(), {
-    headers: {
-      "X-Auth-Token": API_KEY,
-      "Content-Type": "application/json",
-    },
+    headers: { "X-Auth-Token": API_KEY, "Content-Type": "application/json" },
   });
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`football-data.org API error ${res.status}: ${text}`);
+    throw new Error(`football-data.org ${res.status}: ${text}`);
   }
 
   return res.json() as Promise<T>;
 }
-
-// ─── Upsert team helper ───────────────────────────────────────────────────────
 
 type TeamRecord = {
   id: string;
@@ -124,12 +119,7 @@ type TeamRecord = {
   flagUrl: string | null;
 };
 
-/**
- * Returns null if the team is a TBD placeholder (not decided yet).
- * football-data.org returns { name: null, tla: null } for undecided knockout slots.
- */
 async function upsertTeam(fdTeam: FDTeam): Promise<TeamRecord | null> {
-  // Team not decided yet (e.g. "Winner Match A") — skip
   if (!fdTeam.name || fdTeam.name.trim() === "") return null;
 
   const rawCode =
@@ -138,9 +128,7 @@ async function upsertTeam(fdTeam: FDTeam): Promise<TeamRecord | null> {
   const name = fdTeam.name.trim();
 
   const existing = await prisma.team.findFirst({
-    where: {
-      OR: [{ code }, { name }],
-    },
+    where: { OR: [{ code }, { name }] },
   });
 
   if (existing) {
@@ -155,7 +143,7 @@ async function upsertTeam(fdTeam: FDTeam): Promise<TeamRecord | null> {
   });
 }
 
-// ─── Core sync function ───────────────────────────────────────────────────────
+// ─── Core result ──────────────────────────────────────────────────────────────
 
 export interface SyncResult {
   total: number;
@@ -163,13 +151,11 @@ export interface SyncResult {
   updated: number;
   skipped: number;
   errors: string[];
+  scored: ScoringResult[]; // ← NEW: prediction scoring results
 }
 
-/**
- * Fetches all WC matches from football-data.org and upserts into the DB.
- * Skips matches where either team is still TBD — re-run sync after the
- * previous round completes to pick those up automatically.
- */
+// ─── Main sync ────────────────────────────────────────────────────────────────
+
 export async function syncWorldCupMatches(
   options: { includeGroupStage?: boolean; season?: string } = {},
 ): Promise<SyncResult> {
@@ -181,6 +167,7 @@ export async function syncWorldCupMatches(
     updated: 0,
     skipped: 0,
     errors: [],
+    scored: [],
   };
 
   const data = await fetchFromAPI<FDMatchesResponse>(
@@ -188,7 +175,8 @@ export async function syncWorldCupMatches(
     { season },
   );
 
-  const knockout_stages = new Set([
+  const knockoutStages = new Set([
+    "ROUND_OF_32",
     "ROUND_OF_16",
     "LAST_16",
     "ROUND_OF_8",
@@ -202,43 +190,49 @@ export async function syncWorldCupMatches(
 
   const matchesToProcess = includeGroupStage
     ? data.matches
-    : data.matches.filter((m) => knockout_stages.has(m.stage));
+    : data.matches.filter((m) => knockoutStages.has(m.stage));
 
   result.total = matchesToProcess.length;
 
+  // Track matches that need prediction scoring after the sync loop
+  const toScore: Array<{ matchId: string; winnerId: string; round: string }> =
+    [];
+
   for (const fdMatch of matchesToProcess) {
     try {
-      // Skip if stage not mapped
       const round = STAGE_TO_ROUND[fdMatch.stage];
       if (!round) {
         result.skipped++;
         continue;
       }
 
-      const status = STATUS_MAP[fdMatch.status] ?? MatchStatus.SCHEDULED;
+      const newStatus = STATUS_MAP[fdMatch.status] ?? MatchStatus.SCHEDULED;
 
-      // Upsert teams — null means team not decided yet
       const [homeTeam, awayTeam] = await Promise.all([
         upsertTeam(fdMatch.homeTeam),
         upsertTeam(fdMatch.awayTeam),
       ]);
 
-      // Skip TBD matches — will be synced once teams are confirmed
       if (!homeTeam || !awayTeam) {
         result.skipped++;
         continue;
       }
 
-      // Resolve winner
       let winnerId: string | null = null;
       if (fdMatch.score.winner === "HOME_TEAM") winnerId = homeTeam.id;
       else if (fdMatch.score.winner === "AWAY_TEAM") winnerId = awayTeam.id;
+      // DRAW → winnerId stays null (no winner to score against)
 
       const externalId = `fd-${fdMatch.id}`;
 
-      const existing = await prisma.match.findUnique({
-        where: { externalId },
-      });
+      const existing = await prisma.match.findUnique({ where: { externalId } });
+
+      // Detect transition to COMPLETED so we can score predictions
+      const wasCompleted = existing?.status === MatchStatus.COMPLETED;
+      const isNowCompleted = newStatus === MatchStatus.COMPLETED;
+      const winnerChanged = existing?.winnerId !== winnerId;
+
+      // Replace the "detect transition" block and toScore push with this:
 
       const matchData = {
         round,
@@ -248,21 +242,54 @@ export async function syncWorldCupMatches(
         homeScore: fdMatch.score.fullTime.home ?? null,
         awayScore: fdMatch.score.fullTime.away ?? null,
         winnerId,
-        status,
+        status: newStatus,
         scheduledAt: new Date(fdMatch.utcDate),
         venue: fdMatch.venue ?? null,
         externalId,
       };
+
+      let savedMatchId: string;
 
       if (existing) {
         await prisma.match.update({
           where: { id: existing.id },
           data: matchData,
         });
+        savedMatchId = existing.id;
         result.updated++;
       } else {
-        await prisma.match.create({ data: matchData });
+        const created = await prisma.match.create({ data: matchData });
+        savedMatchId = created.id;
         result.created++;
+      }
+
+      // Queue for scoring if match is COMPLETED with a winner AND
+      // there are any unscored predictions (isCorrect === null).
+      // This handles: first sync after completion, re-runs, winner corrections.
+      if (winnerId && newStatus === MatchStatus.COMPLETED) {
+        const unscoredCount = await prisma.prediction.count({
+          where: {
+            matchId: savedMatchId,
+            OR: [
+              { isCorrect: null },
+              // Also re-score if winner changed (correction scenario)
+              ...(existing?.winnerId && existing.winnerId !== winnerId
+                ? [{ isCorrect: { not: null } }]
+                : []),
+            ],
+          },
+        });
+
+        if (unscoredCount > 0) {
+          toScore.push({ matchId: savedMatchId, winnerId, round });
+        }
+      }
+
+      // Queue for scoring if:
+      //   • match just became COMPLETED, OR
+      //   • was already COMPLETED but winner changed (correction)
+      if (winnerId && isNowCompleted && (!wasCompleted || winnerChanged)) {
+        toScore.push({ matchId: savedMatchId, winnerId, round });
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -270,12 +297,30 @@ export async function syncWorldCupMatches(
     }
   }
 
+  // Score predictions for all newly-completed matches
+  if (toScore.length > 0) {
+    for (const { matchId, winnerId, round } of toScore) {
+      try {
+        const scoring = await scoreMatchPredictions(matchId, winnerId, round);
+        result.scored.push(scoring);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        result.errors.push(`Scoring matchId=${matchId}: ${msg}`);
+      }
+    }
+
+    // Recalculate ranks once after all scoring is done
+    try {
+      await recalculateLeaderboardRanks();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      result.errors.push(`Rank recalculation: ${msg}`);
+    }
+  }
+
   return result;
 }
 
-/**
- * Quick sync for live/upcoming matches — call every few minutes during match windows.
- */
 export async function syncLiveAndUpcomingMatches(): Promise<SyncResult> {
   return syncWorldCupMatches({ includeGroupStage: false });
 }

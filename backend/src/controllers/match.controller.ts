@@ -115,55 +115,55 @@ export const getMatch = async (req: Request, res: Response): Promise<void> => {
 
 // ─── PUT /api/matches/:id/result — Admin only ────────────────────────────────
 
-export const updateMatchResult = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  try {
-    const { homeScore, awayScore, winnerId, status } = req.body;
+// export const updateMatchResult = async (
+//   req: Request,
+//   res: Response,
+// ): Promise<void> => {
+//   try {
+//     const { homeScore, awayScore, winnerId, status } = req.body;
 
-    const match = await prisma.match.update({
-      where: { id: req.params.id },
-      data: { homeScore, awayScore, winnerId, status },
-    });
+//     const match = await prisma.match.update({
+//       where: { id: req.params.id },
+//       data: { homeScore, awayScore, winnerId, status },
+//     });
 
-    if (status === "COMPLETED" && winnerId) {
-      const predictions = await prisma.prediction.findMany({
-        where: { matchId: match.id },
-      });
+//     if (status === "COMPLETED" && winnerId) {
+//       const predictions = await prisma.prediction.findMany({
+//         where: { matchId: match.id },
+//       });
 
-      const points = ROUND_POINTS[match.round] || 0;
+//       const points = ROUND_POINTS[match.round] || 0;
 
-      for (const prediction of predictions) {
-        const isCorrect = prediction.predictedWinnerId === winnerId;
-        const pointsEarned = isCorrect ? points : 0;
+//       for (const prediction of predictions) {
+//         const isCorrect = prediction.predictedWinnerId === winnerId;
+//         const pointsEarned = isCorrect ? points : 0;
 
-        await prisma.prediction.update({
-          where: { id: prediction.id },
-          data: { isCorrect, pointsEarned },
-        });
+//         await prisma.prediction.update({
+//           where: { id: prediction.id },
+//           data: { isCorrect, pointsEarned },
+//         });
 
-        if (isCorrect) {
-          const roundField = getRoundField(match.round);
-          await prisma.leaderboardEntry.update({
-            where: { userId: prediction.userId },
-            data: {
-              totalPoints: { increment: pointsEarned },
-              [roundField]: { increment: pointsEarned },
-            },
-          });
-        }
-      }
+//         if (isCorrect) {
+//           const roundField = getRoundField(match.round);
+//           await prisma.leaderboardEntry.update({
+//             where: { userId: prediction.userId },
+//             data: {
+//               totalPoints: { increment: pointsEarned },
+//               [roundField]: { increment: pointsEarned },
+//             },
+//           });
+//         }
+//       }
 
-      await recalculateRanks();
-    }
+//       await recalculateRanks();
+//     }
 
-    res.json({ match, message: "Match updated and points calculated" });
-  } catch (error) {
-    console.error("Update match error:", error);
-    res.status(500).json({ message: "Failed to update match" });
-  }
-};
+//     res.json({ match, message: "Match updated and points calculated" });
+//   } catch (error) {
+//     console.error("Update match error:", error);
+//     res.status(500).json({ message: "Failed to update match" });
+//   }
+// };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -192,4 +192,34 @@ const recalculateRanks = async (): Promise<void> => {
       }),
     ),
   );
+};
+
+// In updateMatchResult, replace the prediction loop with:
+import {
+  scoreMatchPredictions,
+  recalculateLeaderboardRanks,
+} from "../services/scoring.service";
+
+export const updateMatchResult = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { homeScore, awayScore, winnerId, status } = req.body;
+
+    const match = await prisma.match.update({
+      where: { id: req.params.id },
+      data: { homeScore, awayScore, winnerId, status },
+    });
+
+    if (status === "COMPLETED" && winnerId) {
+      await scoreMatchPredictions(match.id, winnerId, match.round);
+      await recalculateLeaderboardRanks();
+    }
+
+    res.json({ match, message: "Match updated and points calculated" });
+  } catch (error) {
+    console.error("Update match error:", error);
+    res.status(500).json({ message: "Failed to update match" });
+  }
 };
