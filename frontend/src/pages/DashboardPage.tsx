@@ -173,7 +173,7 @@ export default function DashboardPage() {
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">Welcome, {user?.name}! 👋</h1>
+        <h1 className="text-2xl font-bold ">Welcome, {user?.name}! 👋</h1>
         <p className="text-gray-400 mt-1">Here's your prediction competition overview</p>
       </div>
 
@@ -224,7 +224,7 @@ export default function DashboardPage() {
                 <div key={key}>
                   <div className="flex justify-between text-sm mb-1">
                     <span className="text-gray-400">{label}</span>
-                    <span className="text-white font-medium">{pts} / {max}</span>
+                    <span className="font-medium">{pts} / {max}</span>
                   </div>
                   <div className="w-full bg-gray-800 rounded-full h-2">
                     <div
@@ -241,15 +241,15 @@ export default function DashboardPage() {
         {/* Upcoming matches */}
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-white">Upcoming Matches</h3>
-            <Link to="/predict" className="text-primary-400 hover:text-primary-300 text-sm flex items-center gap-1">
+            <h3 className="text-lg font-bold">Upcoming Matches</h3>
+            <Link to="/predict" className="text-[#F5C518] hover:text-[#FFD700] text-sm flex items-center gap-1">
               Predict All <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map(i => (
-                <div key={i} className="h-16 bg-gray-800 rounded-xl animate-pulse" />
+                <div key={i} className="h-16 border rounded-xl animate-pulse" />
               ))}
             </div>
           ) : upcomingMatches.length === 0 ? (
@@ -260,9 +260,9 @@ export default function DashboardPage() {
           ) : (
             <div className="space-y-3">
               {upcomingMatches.map(match => (
-                <div key={match.id} className="bg-gray-800 rounded-xl p-3">
+                <div key={match.id} className="border rounded-xl p-3">
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                    <span className="bg-gray-700 px-2 py-0.5 rounded">{ROUND_LABELS[match.round]}</span>
+                    <span className="px-2 py-0.5 rounded">{ROUND_LABELS[match.round]}</span>
                     <span>{new Date(match.scheduledAt).toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -303,7 +303,7 @@ function StatCard({ icon, label, value, color }: {
       <div className={`w-10 h-10 ${bg[color]} rounded-xl flex items-center justify-center mb-3`}>
         {icon}
       </div>
-      <div className="text-2xl font-bold text-white">{value}</div>
+      <div className="text-2xl font-bold">{value}</div>
       <div className="text-gray-400 text-sm mt-1">{label}</div>
     </div>
   );
