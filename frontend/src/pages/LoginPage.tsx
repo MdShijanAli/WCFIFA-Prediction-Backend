@@ -90,7 +90,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ background: '#060b18' }}>
+    <div className="min-h-screen flex" >
 
       {/* ════════════════════════════════
            LEFT PANEL — Flag collage
@@ -115,7 +115,7 @@ export default function LoginPage() {
                 className="absolute bottom-0 left-0 right-0 px-2.5 py-2 rounded-b-xl"
                 style={{ background: 'linear-gradient(to top, rgba(6,11,24,0.9), transparent)' }}
               >
-                <p className="text-white text-[9px] font-semibold tracking-[2px] uppercase">
+                <p className=" text-[9px] font-semibold tracking-[2px] uppercase">
                   {team.name}
                 </p>
               </div>
@@ -213,7 +213,7 @@ export default function LoginPage() {
                   >
                     {pts}
                   </p>
-                  <p className="text-[10px] mt-1 tracking-wide" style={{ color: 'rgba(255,255,255,0.38)' }}>
+                  <p className="text-[10px] mt-1 tracking-wide" >
                     {label}
                   </p>
                 </div>
@@ -226,198 +226,160 @@ export default function LoginPage() {
       {/* ════════════════════════════════
            RIGHT PANEL — Form
       ════════════════════════════════ */}
+      {/* ════════════════════════════════
+     RIGHT PANEL — Form
+════════════════════════════════ */}
       <div
         className="flex-1 flex flex-col justify-center px-8 py-10 sm:px-12"
-        style={{ background: '#0d1220' }}
+        style={{ background: '#f3f3f9' }}
       >
         <div className="w-full max-w-sm mx-auto">
 
-          {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: '#F5C518' }}
-            >
-              <Star className="w-5 h-5" style={{ color: '#060b18' }} />
-            </div>
-            <span className="font-semibold text-white text-base tracking-wide">NBWC Predictions</span>
-          </div>
-
-          {/* Desktop logo row */}
-          <div className="hidden lg:flex items-center gap-3 mb-7">
+          {/* Logo row */}
+          <div className="flex items-center gap-3 mb-7">
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: '#F5C518' }}
+              style={{ background: '#1a1f2e' }}
             >
-              <Star className="w-5 h-5" style={{ color: '#060b18' }} />
+              <Star className="w-4 h-4" style={{ color: '#F5C518' }} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white tracking-wide">NBWC Predictions</p>
-              <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                FIFA World Cup Qualifier
-              </p>
+              <p className="text-sm font-semibold tracking-wide" style={{ color: '#0f1623' }}>NBWC Predictions</p>
+              <p className="text-[10px]" style={{ color: '#9494a8' }}>FIFA World Cup Qualifier</p>
             </div>
           </div>
 
-          {/* Live badge */}
-          <div className="mb-5">
-            <span
-              className="inline-flex items-center gap-2 text-[11px] font-medium tracking-widest uppercase px-3 py-1.5 rounded-full"
-              style={{
-                background: 'rgba(220,38,38,0.12)',
-                border: '0.5px solid rgba(220,38,38,0.3)',
-                color: '#f87171',
-              }}
-            >
+          {/* Card */}
+          <div
+            className="rounded-2xl p-7"
+            style={{
+              background: '#ffffff',
+              border: '1px solid #e6e6f0',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+            }}
+          >
+            {/* Live badge */}
+            <div className="mb-5">
               <span
-                className="w-1.5 h-1.5 rounded-full animate-pulse"
-                style={{ background: '#ef4444' }}
-              />
-              Round of 32 open for predictions
-            </span>
-          </div>
-
-          <h2 className="text-2xl font-semibold text-white mb-1">Welcome back</h2>
-          <p className="text-sm mb-7" style={{ color: 'rgba(255,255,255,0.38)' }}>
-            Sign in and climb the national leaderboard.
-          </p>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-
-            {/* Phone */}
-            <div>
-              <label
-                className="block text-[11px] font-medium tracking-widest uppercase mb-2"
-                style={{ color: 'rgba(255,255,255,0.45)' }}
+                className="inline-flex items-center gap-2 text-[10px] font-medium tracking-[1.5px] uppercase px-3 py-1.5 rounded-full"
+                style={{ background: '#fff0f0', border: '0.5px solid #fccaca', color: '#dc2626' }}
               >
-                Phone number
-              </label>
-              <div className="relative">
-                <Phone
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4"
-                  style={{ color: 'rgba(255,255,255,0.3)' }}
-                />
-                <input
-                  {...register('phone', { required: 'Phone number is required' })}
-                  type="tel"
-                  placeholder="+880XXXXXXXXXX"
-                  className="w-full rounded-xl text-sm text-white outline-none pl-11 pr-4 py-3 transition-all"
-                  style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
-                    color: '#fff',
-                  }}
-                  onFocus={e => {
-                    e.target.style.border = '0.5px solid rgba(245,197,24,0.55)';
-                    e.target.style.background = 'rgba(245,197,24,0.04)';
-                  }}
-                  onBlur={e => {
-                    e.target.style.border = '0.5px solid rgba(255,255,255,0.1)';
-                    e.target.style.background = 'rgba(255,255,255,0.05)';
-                  }}
-                />
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#ef4444' }} />
+                Round of 32 open for predictions
+              </span>
+            </div>
+
+            <h2 className="text-2xl font-semibold mb-1" style={{ color: '#0f1623' }}>Welcome back</h2>
+            <p className="text-xs mb-6 leading-relaxed" style={{ color: '#9494a8' }}>
+              Sign in and climb the national leaderboard.
+            </p>
+
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
+
+              {/* Phone */}
+              <div>
+                <label className="block text-[10px] font-semibold tracking-[1.8px] uppercase mb-2" style={{ color: '#9494a8' }}>
+                  Phone number
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: '#b0b0c3' }} />
+                  <input
+                    {...register('phone', { required: 'Phone number is required' })}
+                    type="tel"
+                    placeholder="+880XXXXXXXXXX"
+                    className="w-full rounded-[10px] text-sm pl-9 pr-4 py-3 outline-none transition-all"
+                    style={{
+                      background: '#fff',
+                      border: '1px solid #e2e2ec',
+                      color: '#0f1623',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                    }}
+                    onFocus={e => {
+                      e.target.style.border = '1px solid #6366f1';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.1)';
+                    }}
+                    onBlur={e => {
+                      e.target.style.border = '1px solid #e2e2ec';
+                      e.target.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)';
+                    }}
+                  />
+                </div>
+                {errors.phone && <p className="text-red-500 text-xs mt-1.5">{errors.phone.message}</p>}
               </div>
-              {errors.phone && (
-                <p className="text-red-400 text-xs mt-1.5">{errors.phone.message}</p>
-              )}
-            </div>
 
-            {/* Password */}
-            <div>
-              <label
-                className="block text-[11px] font-medium tracking-widest uppercase mb-2"
-                style={{ color: 'rgba(255,255,255,0.45)' }}
-              >
-                Password
-              </label>
-              <div className="relative">
-                <Lock
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4"
-                  style={{ color: 'rgba(255,255,255,0.3)' }}
-                />
-                <input
-                  {...register('password', { required: 'Password is required' })}
-                  type={showPass ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  className="w-full rounded-xl text-sm text-white outline-none pl-11 pr-12 py-3 transition-all"
-                  style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '0.5px solid rgba(255,255,255,0.1)',
-                    color: '#fff',
-                  }}
-                  onFocus={e => {
-                    e.target.style.border = '0.5px solid rgba(245,197,24,0.55)';
-                    e.target.style.background = 'rgba(245,197,24,0.04)';
-                  }}
-                  onBlur={e => {
-                    e.target.style.border = '0.5px solid rgba(255,255,255,0.1)';
-                    e.target.style.background = 'rgba(255,255,255,0.05)';
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPass(!showPass)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
-                  style={{ color: 'rgba(255,255,255,0.3)' }}
-                  onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
-                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
-                >
-                  {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+              {/* Password */}
+              <div>
+                <label className="block text-[10px] font-semibold tracking-[1.8px] uppercase mb-2" style={{ color: '#9494a8' }}>
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: '#b0b0c3' }} />
+                  <input
+                    {...register('password', { required: 'Password is required' })}
+                    type={showPass ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    className="w-full rounded-[10px] text-sm pl-9 pr-10 py-3 outline-none transition-all"
+                    style={{
+                      background: '#fff',
+                      border: '1px solid #e2e2ec',
+                      color: '#0f1623',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                    }}
+                    onFocus={e => {
+                      e.target.style.border = '1px solid #6366f1';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.1)';
+                    }}
+                    onBlur={e => {
+                      e.target.style.border = '1px solid #e2e2ec';
+                      e.target.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)';
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(!showPass)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c4c4d4' }}
+                    onMouseEnter={e => (e.currentTarget.style.color = '#6b6b80')}
+                    onMouseLeave={e => (e.currentTarget.style.color = '#c4c4d4')}
+                  >
+                    {showPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+                {errors.password && <p className="text-red-500 text-xs mt-1.5">{errors.password.message}</p>}
               </div>
-              {errors.password && (
-                <p className="text-red-400 text-xs mt-1.5">{errors.password.message}</p>
-              )}
-            </div>
 
-            {/* Forgot password */}
-            <div className="flex justify-end">
-              <Link
-                to="/forgot-password"
-                className="text-xs transition-opacity"
-                style={{ color: '#F5C518', opacity: 0.8 }}
-                onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
-                onMouseLeave={e => (e.currentTarget.style.opacity = '0.8')}
+              {/* Forgot */}
+              <div className="flex justify-end pt-0.5">
+                <Link to="/forgot-password" className="text-[11px] font-medium" style={{ color: '#F5C518' }}>
+                  Forgot password?
+                </Link>
+              </div>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-[10px] py-3 text-sm font-semibold tracking-wide transition-all disabled:opacity-60"
+                style={{ background: '#1a1f2e', color: '#F5C518' }}
+                onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#0f1623'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#1a1f2e'; }}
               >
-                Forgot password?
-              </Link>
+                {loading ? 'Signing in…' : 'Sign In'}
+              </button>
+            </form>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 my-5">
+              <div className="flex-1 h-px" style={{ background: '#e6e6f0' }} />
+              <span className="text-[10px] tracking-[2px] uppercase" style={{ color: '#c0c0d0' }}>New here?</span>
+              <div className="flex-1 h-px" style={{ background: '#e6e6f0' }} />
             </div>
 
-            {/* Sign in button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-xl py-3 text-sm font-semibold tracking-wide transition-opacity disabled:opacity-60"
-              style={{ background: '#F5C518', color: '#060b18' }}
-              onMouseEnter={e => { if (!loading) e.currentTarget.style.opacity = '0.88'; }}
-              onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
-            >
-              {loading ? 'Signing in…' : 'Sign In'}
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
-            <span
-              className="text-[11px] tracking-widest uppercase"
-              style={{ color: 'rgba(255,255,255,0.22)' }}
-            >
-              New here?
-            </span>
-            <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
+            <p className="text-center text-xs" style={{ color: '#9494a8' }}>
+              Don't have an account?{' '}
+              <Link to="/register" className="font-medium" style={{ color: '#F5C518' }}>Sign up free</Link>
+            </p>
           </div>
-
-          <p className="text-center text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            Don't have an account?{' '}
-            <Link
-              to="/register"
-              className="font-medium"
-              style={{ color: '#F5C518' }}
-            >
-              Sign up free
-            </Link>
-          </p>
         </div>
       </div>
 
