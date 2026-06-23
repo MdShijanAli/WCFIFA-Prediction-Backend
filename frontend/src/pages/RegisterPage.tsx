@@ -51,7 +51,7 @@ export default function RegisterPage() {
 
   const handleOTPVerified = (token: string, user: any) => {
     login(token, user);
-    navigate("/payment");
+    navigate("/dashboard");
   };
 
   return (

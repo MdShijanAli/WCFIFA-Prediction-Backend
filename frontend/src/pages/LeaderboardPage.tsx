@@ -30,17 +30,10 @@ export default function LeaderboardPage() {
   useEffect(() => { fetchLeaderboard(page); }, [page]);
 
   const getRankIcon = (rank: number) => {
-    if (rank === 1) return <Trophy className="w-5 h-5 text-yellow-400" />;
-    if (rank === 2) return <Medal className="w-5 h-5 text-gray-300" />;
+    if (rank === 1) return <Trophy className="w-5 h-5 text-primary-700" />;
+    if (rank === 2) return <Medal className="w-5 h-5 " />;
     if (rank === 3) return <Medal className="w-5 h-5 text-amber-600" />;
     return <span className="text-gray-500 text-sm font-bold w-5 text-center">#{rank}</span>;
-  };
-
-  const getRankBg = (rank: number) => {
-    if (rank === 1) return 'bg-yellow-500/10 border-yellow-500/30';
-    if (rank === 2) return 'bg-gray-400/10 border-gray-400/30';
-    if (rank === 3) return 'bg-amber-600/10 border-amber-600/30';
-    return 'bg-gray-900 border-gray-800';
   };
 
   return (

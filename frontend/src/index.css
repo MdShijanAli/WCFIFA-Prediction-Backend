@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900 font-sans antialiased;
+    @apply bg-[#464a4b] text-gray-900 font-sans antialiased;
     margin: 0;
   }
 
@@ -15,7 +15,7 @@
 
 @layer components {
   .btn-primary {
-    background-color: #F5C518;
+    background-color: #800080;
     @apply text-black font-semibold py-3 px-6 rounded-xl transition-all duration-200 hover:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 

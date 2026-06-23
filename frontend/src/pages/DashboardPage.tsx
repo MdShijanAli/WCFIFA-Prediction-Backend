@@ -1,10 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Trophy, Target, BarChart2, TrendingUp, AlertCircle, ChevronRight } from 'lucide-react';
+import { Trophy, Target, BarChart2, TrendingUp, ChevronRight, Play, Pause, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { leaderboardApi, predictionApi, sponsorVideoApi, upcomingMatchesApi } from '../services/api';
 import type { LeaderboardEntry, Match, Prediction } from '../types';
-import { ROUND_LABELS, ROUND_POINTS, ROUNDS_ORDER } from '../types';
+import { ROUND_LABELS, ROUND_POINTS } from '../types';
+
+// Extend window for YouTube IFrame API
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
+
+function extractVideoId(url: string): string | null {
+  const m = url.match(/(?:youtu\.be\/|v=)([^&?/]+)/);
+  return m ? m[1] : null;
+}
 
 export default function DashboardPage() {
   const { user, accessUnlocked, refreshAuth } = useAuth();
@@ -13,21 +26,65 @@ export default function DashboardPage() {
   const [myPredictions, setMyPredictions] = useState<Prediction[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // sponsor video state
+  // sponsor video
   const [video, setVideo] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [totalDuration, setTotalDuration] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
 
-  console.log('Access Unlocked:', accessUnlocked);
+  // refs
+  const isPausedRef = useRef(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const ytPlayerRef = useRef<any>(null);          // YT.Player instance
+  const playerDivRef = useRef<HTMLDivElement>(null); // div YT mounts into
+  const ytReadyRef = useRef(false);              // YT API loaded?
+  const pendingPlayRef = useRef(false);             // play requested before API ready
 
+  // ── Load YouTube IFrame API script once ──────────────────────
+  useEffect(() => {
+    if (window.YT && window.YT.Player) {
+      ytReadyRef.current = true;
+      return;
+    }
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(tag);
+
+    window.onYouTubeIframeAPIReady = () => {
+      ytReadyRef.current = true;
+      if (pendingPlayRef.current) {
+        pendingPlayRef.current = false;
+        mountPlayer();
+      }
+    };
+  }, []);
+
+  // ── Mount / destroy YT.Player when modal opens/closes ────────
+  useEffect(() => {
+    if (!showModal) {
+      destroyPlayer();
+      return;
+    }
+    if (ytReadyRef.current) {
+      // Small timeout so the div is in the DOM
+      setTimeout(mountPlayer, 50);
+    } else {
+      pendingPlayRef.current = true;
+    }
+  }, [showModal]);
+
+  // keep isPausedRef in sync
+  useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
+
+  // ── Dashboard data ────────────────────────────────────────────
   useEffect(() => {
     if (!accessUnlocked) {
       setLoading(false);
       loadVideo();
       return;
     }
-
     Promise.all([
       leaderboardApi.getMyRank().then(r => setMyRank(r.data.entry)),
       upcomingMatchesApi.getAll().then(r => setUpcomingMatches(r.data.matches)),
@@ -41,127 +98,255 @@ export default function DashboardPage() {
     try {
       const res = await sponsorVideoApi.getCurrent();
       setVideo(res.data.video);
-    } catch (err) {
-      console.error(err);
+    } catch (err) { console.error(err); }
+  };
+
+  // ── YT Player helpers ─────────────────────────────────────────
+  const mountPlayer = () => {
+    if (!playerDivRef.current || !video?.videoUrl) return;
+    const videoId = extractVideoId(video.videoUrl);
+    if (!videoId) return;
+
+    destroyPlayer(); // clean up any existing player
+
+    ytPlayerRef.current = new window.YT.Player(playerDivRef.current, {
+      videoId,
+      playerVars: {
+        autoplay: 1,
+        mute: 0,          // sound on — browser allows because user just clicked
+        rel: 0,
+        modestbranding: 1,
+        controls: 1,
+      },
+      events: {
+        onReady: (e: any) => {
+          e.target.playVideo(); // force play on ready
+        },
+        onStateChange: (e: any) => {
+          // YT.PlayerState: PLAYING=1, PAUSED=2
+          if (e.data === 2) {
+            // video paused externally (user clicked YT controls)
+            setIsPaused(true);
+            isPausedRef.current = true;
+          } else if (e.data === 1) {
+            setIsPaused(false);
+            isPausedRef.current = false;
+          }
+        },
+      },
+    });
+  };
+
+  const destroyPlayer = () => {
+    if (ytPlayerRef.current) {
+      try { ytPlayerRef.current.destroy(); } catch (_) { }
+      ytPlayerRef.current = null;
     }
   };
 
-  const getEmbedUrl = (url: string) => {
-    const match = url.match(/(?:youtu\.be\/|v=)([^&]+)/);
-    return match
-      ? `https://www.youtube.com/embed/${match[1]}`
-      : url;
-  };
-
+  // ── Watch session ─────────────────────────────────────────────
   const startWatch = async () => {
     try {
       const res = await sponsorVideoApi.start();
-
       const id = res.data.watchSessionId;
       setSessionId(id);
 
       const duration = video?.durationSeconds || 15;
+      setTotalDuration(duration);
       setTimeLeft(duration);
-      setShowModal(true);
+      setIsPaused(false);
+      isPausedRef.current = false;
+      setShowModal(true); // triggers mountPlayer via useEffect
 
-      const interval = setInterval(() => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = setInterval(() => {
+        if (isPausedRef.current) return;
         setTimeLeft(prev => {
           if (prev <= 1) {
-            clearInterval(interval);
-            completeWatch(id); // 👈 PASS DIRECT
+            clearInterval(intervalRef.current!);
+            completeWatch(id);
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
-
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   };
 
   const completeWatch = async (id: string) => {
     try {
-      console.log('Completing session:', id);
-
       await sponsorVideoApi.complete(id);
-
       await refreshAuth();
-
       setShowModal(false);
-    } catch (err) {
-      console.error(err);
+    } catch (err) { console.error(err); }
+  };
+
+  // ── Pause / resume ────────────────────────────────────────────
+  const togglePause = () => {
+    const next = !isPaused;
+    setIsPaused(next);
+    isPausedRef.current = next;
+    if (ytPlayerRef.current) {
+      next ? ytPlayerRef.current.pauseVideo() : ytPlayerRef.current.playVideo();
     }
   };
 
+  const elapsed = totalDuration - timeLeft;
+  const progressPct = totalDuration > 0 ? (elapsed / totalDuration) * 100 : 0;
+
+  // ── Unlock gate ───────────────────────────────────────────────
   if (!accessUnlocked) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="card max-w-md w-full text-center">
-          <AlertCircle className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
+      <div className="min-h-[80vh] flex items-center justify-center p-4">
 
-          <h2 className="text-xl font-bold text-white mb-2">
-            Unlock Access
-          </h2>
+        {/* Gate card */}
+        <div
+          className="w-full max-w-md rounded-2xl p-8 text-center relative overflow-hidden"
+          style={{ background: '#0d1220', border: '0.5px solid rgba(245,197,24,0.15)' }}
+        >
+          <div
+            className="absolute pointer-events-none"
+            style={{
+              top: '-60px', left: '50%', transform: 'translateX(-50%)',
+              width: '300px', height: '300px',
+              background: 'radial-gradient(circle, rgba(245,197,24,0.08) 0%, transparent 70%)',
+            }}
+          />
 
-          <p className="text-gray-400 mb-6">
-            Watch a short sponsored video to continue
+          <div
+            className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5"
+            style={{ background: 'rgba(245,197,24,0.1)', border: '0.5px solid rgba(245,197,24,0.25)' }}
+          >
+            <Lock className="w-7 h-7" style={{ color: '#F5C518' }} />
+          </div>
+
+          <h2 className="text-xl font-bold mb-2">Unlock Full Access</h2>
+          <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.42)' }}>
+            Watch a short sponsored video to unlock all predictions and leaderboard features.
           </p>
 
           {video && (
-            <div className="bg-gray-800 p-3 rounded-xl mb-4 text-left">
-              <p className="text-white font-semibold">{video.title}</p>
-              <p className="text-gray-400 text-sm">{video.sponsorName}</p>
-              <p className="text-gray-500 text-xs">
-                Duration: {video.durationSeconds}s
-              </p>
+            <div
+              className="rounded-xl p-4 mb-6 text-left"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)' }}
+            >
+              <div className="flex items-start gap-3">
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(245,197,24,0.12)' }}
+                >
+                  <Play className="w-4 h-4" style={{ color: '#F5C518' }} />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">{video.title}</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.38)' }}>{video.sponsorName}</p>
+                  <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>⏱ {video.durationSeconds} seconds</p>
+                </div>
+              </div>
             </div>
           )}
 
           <button
             onClick={startWatch}
-            className="btn-primary w-full"
+            className="w-full rounded-xl py-3 text-sm font-semibold tracking-wide flex items-center justify-center gap-2 transition-opacity"
+            style={{ background: '#F5C518', color: '#060b18' }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = '0.88')}
+            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
           >
-            Watch Video & Unlock
+            <Play className="w-4 h-4" />
+            Watch Video &amp; Unlock
           </button>
         </div>
 
-        {/* VIDEO MODAL */}
+        {/* ── VIDEO MODAL ── */}
         {showModal && video && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-            <div className="bg-gray-900 p-4 rounded-xl w-full max-w-2xl">
+          <div
+            className="fixed inset-0 flex items-center justify-center z-50 p-4"
+            style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(6px)' }}
+          >
+            <div
+              className="w-full max-w-2xl rounded-2xl overflow-hidden"
+              style={{
+                background: '#0d1220',
+                border: '0.5px solid rgba(245,197,24,0.2)',
+                boxShadow: '0 24px 80px rgba(0,0,0,0.7)',
+              }}
+            >
+              {/* Header */}
+              <div
+                className="flex items-center justify-between px-5 py-4"
+                style={{ borderBottom: '0.5px solid rgba(255,255,255,0.07)' }}
+              >
+                <div>
+                  <p className="font-semibold text-sm">{video.title}</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>{video.sponsorName}</p>
+                </div>
 
-              <div className="flex justify-between mb-2">
-                <h3 className="text-white font-bold">
-                  {video.title}
-                </h3>
-
-                <span className="text-red-400 font-bold">
-                  {timeLeft}s
-                </span>
-              </div>
-
-              <iframe
-                className="w-full h-64 rounded-lg"
-                src={getEmbedUrl(video.videoUrl)}
-                allow="autoplay"
-              />
-
-              <div className="w-full bg-gray-700 h-2 rounded mt-3">
+                {/* Countdown pill */}
                 <div
-                  className="bg-green-500 h-2 transition-all"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-300"
                   style={{
-                    width: `${((video.durationSeconds - timeLeft) /
-                      video.durationSeconds) *
-                      100
-                      }%`,
+                    background: isPaused ? 'rgba(255,255,255,0.06)' : 'rgba(245,197,24,0.12)',
+                    border: `0.5px solid ${isPaused ? 'rgba(255,255,255,0.12)' : 'rgba(245,197,24,0.3)'}`,
                   }}
-                />
+                >
+                  {isPaused
+                    ? <Pause className="w-3.5 h-3.5" style={{ color: 'rgba(255,255,255,0.5)' }} />
+                    : <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#F5C518' }} />
+                  }
+                  <span
+                    className="font-bold text-sm tabular-nums"
+                    style={{ color: isPaused ? 'rgba(255,255,255,0.5)' : '#F5C518' }}
+                  >
+                    {timeLeft}s
+                  </span>
+                </div>
               </div>
 
-              <p className="text-gray-400 text-sm mt-2">
-                Please wait until video completes...
-              </p>
+              {/* Player div — YT.Player mounts here */}
+              <div style={{ aspectRatio: '16/9', background: '#000' }}>
+                <div ref={playerDivRef} className="w-full h-full" />
+              </div>
+
+              {/* Progress + controls */}
+              <div className="px-5 py-4">
+                <div
+                  className="w-full rounded-full overflow-hidden mb-3"
+                  style={{ height: '4px', background: 'rgba(255,255,255,0.08)' }}
+                >
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${progressPct}%`,
+                      background: isPaused ? 'rgba(255,255,255,0.3)' : 'linear-gradient(90deg, #F5C518, #FFD700)',
+                      transition: isPaused ? 'none' : 'width 1s linear',
+                    }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                    {isPaused
+                      ? '⏸ Paused — countdown also paused'
+                      : '▶ Please watch until the end to unlock access'}
+                  </p>
+
+                  <button
+                    onClick={togglePause}
+                    className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-all"
+                    style={{
+                      background: isPaused ? 'rgba(245,197,24,0.15)' : 'rgba(255,255,255,0.06)',
+                      color: isPaused ? '#F5C518' : 'rgba(255,255,255,0.45)',
+                      border: `0.5px solid ${isPaused ? 'rgba(245,197,24,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                    }}
+                  >
+                    {isPaused
+                      ? <><Play className="w-3 h-3" /> Resume</>
+                      : <><Pause className="w-3 h-3" /> Pause</>
+                    }
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -169,46 +354,25 @@ export default function DashboardPage() {
     );
   }
 
+  // ── Main dashboard ────────────────────────────────────────────
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold ">Welcome, {user?.name}! 👋</h1>
+        <h1 className="text-2xl font-bold">Welcome, {user?.name}! 👋</h1>
         <p className="text-gray-400 mt-1">Here's your prediction competition overview</p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          icon={<Trophy className="w-5 h-5 text-yellow-400" />}
-          label="Your Rank"
-          value={myRank?.rank ? `#${myRank.rank}` : '-'}
-          color="yellow"
-        />
-        <StatCard
-          icon={<TrendingUp className="w-5 h-5 text-primary-400" />}
-          label="Total Points"
-          value={myRank?.totalPoints?.toString() || '0'}
-          color="green"
-        />
-        <StatCard
-          icon={<Target className="w-5 h-5 text-blue-400" />}
-          label="Predictions Made"
-          value={myPredictions.length.toString()}
-          color="blue"
-        />
-        <StatCard
-          icon={<BarChart2 className="w-5 h-5 text-purple-400" />}
-          label="Correct Picks"
-          value={myPredictions.filter(p => p.isCorrect).length.toString()}
-          color="purple"
-        />
+        <StatCard icon={<Trophy className="w-5 h-5 text-yellow-400" />} label="Your Rank" value={myRank?.rank ? `#${myRank.rank}` : '-'} color="yellow" />
+        <StatCard icon={<TrendingUp className="w-5 h-5 text-primary-400" />} label="Total Points" value={myRank?.totalPoints?.toString() || '0'} color="green" />
+        <StatCard icon={<Target className="w-5 h-5 text-blue-400" />} label="Predictions Made" value={myPredictions.length.toString()} color="blue" />
+        <StatCard icon={<BarChart2 className="w-5 h-5 text-purple-400" />} label="Correct Picks" value={myPredictions.filter(p => p.isCorrect).length.toString()} color="purple" />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Round breakdown */}
         <div className="card">
-          <h3 className="text-lg font-bold text-white mb-4">Points by Round</h3>
+          <h3 className="text-lg font-bold mb-4">Points by Round</h3>
           <div className="space-y-3">
             {[
               { key: 'r32Points', label: 'Round of 32', max: ROUND_POINTS.ROUND_OF_32 * 16 },
@@ -227,10 +391,7 @@ export default function DashboardPage() {
                     <span className="font-medium">{pts} / {max}</span>
                   </div>
                   <div className="w-full bg-gray-800 rounded-full h-2">
-                    <div
-                      className="bg-primary-500 h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${pct}%` }}
-                    />
+                    <div className="bg-primary-500 h-2 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
               );
@@ -248,9 +409,7 @@ export default function DashboardPage() {
           </div>
           {loading ? (
             <div className="space-y-3">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-16 border rounded-xl animate-pulse" />
-              ))}
+              {[1, 2, 3].map(i => <div key={i} className="h-16 border rounded-xl animate-pulse" />)}
             </div>
           ) : upcomingMatches.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
@@ -266,14 +425,14 @@ export default function DashboardPage() {
                     <span>{new Date(match.scheduledAt).toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <div>
+                    <div className="text-center">
                       <img src={match.homeTeam.flagUrl} alt={match.homeTeam.name} className="w-8 h-auto mx-auto" />
-                      <span className="text-white text-sm font-medium">{match.homeTeam.name}</span>
+                      <span className="text-sm font-medium">{match.homeTeam.name}</span>
                     </div>
                     <span className="text-gray-600 text-xs font-bold">VS</span>
-                    <div>
+                    <div className="text-center">
                       <img src={match.awayTeam.flagUrl} alt={match.awayTeam.name} className="w-8 h-auto mx-auto" />
-                      <span className="text-white text-sm font-medium">{match.awayTeam.name}</span>
+                      <span className="text-sm font-medium">{match.awayTeam.name}</span>
                     </div>
                   </div>
                 </div>
@@ -287,22 +446,15 @@ export default function DashboardPage() {
 }
 
 function StatCard({ icon, label, value, color }: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  color: string;
+  icon: React.ReactNode; label: string; value: string; color: string;
 }) {
   const bg: Record<string, string> = {
-    yellow: 'bg-yellow-400/10',
-    green: 'bg-primary-400/10',
-    blue: 'bg-blue-400/10',
-    purple: 'bg-purple-400/10',
+    yellow: 'bg-yellow-400/10', green: 'bg-primary-400/10',
+    blue: 'bg-blue-400/10', purple: 'bg-purple-400/10',
   };
   return (
     <div className="card">
-      <div className={`w-10 h-10 ${bg[color]} rounded-xl flex items-center justify-center mb-3`}>
-        {icon}
-      </div>
+      <div className={`w-10 h-10 ${bg[color]} rounded-xl flex items-center justify-center mb-3`}>{icon}</div>
       <div className="text-2xl font-bold">{value}</div>
       <div className="text-gray-400 text-sm mt-1">{label}</div>
     </div>
