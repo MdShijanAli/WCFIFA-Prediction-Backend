@@ -82,7 +82,7 @@ export default function OTPModal({ userId, type, onSuccess, onClose, title, subt
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 w-full max-w-md relative">
+      <div className="bg-[#f3f3f9] border border-gray-800 rounded-2xl p-8 w-full max-w-md relative">
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-white">
           <X className="w-5 h-5" />
         </button>
@@ -91,7 +91,7 @@ export default function OTPModal({ userId, type, onSuccess, onClose, title, subt
           <div className="w-16 h-16 bg-primary-900 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <span className="text-3xl">📱</span>
           </div>
-          <h3 className="text-xl font-bold text-white">{title || 'Verify Phone'}</h3>
+          <h3 className="text-xl font-bold">{title || 'Verify Phone'}</h3>
           <p className="text-gray-400 text-sm mt-2">
             {subtitle || 'Enter the 6-digit code sent to your phone'}
           </p>
@@ -108,7 +108,7 @@ export default function OTPModal({ userId, type, onSuccess, onClose, title, subt
               value={digit}
               onChange={e => handleChange(i, e.target.value)}
               onKeyDown={e => handleKeyDown(i, e)}
-              className="w-12 h-14 text-center text-xl font-bold bg-gray-800 border border-gray-700 text-white rounded-xl focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              className="w-12 h-14 text-center text-xl font-bold  border border-gray-700 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
             />
           ))}
         </div>
@@ -116,7 +116,7 @@ export default function OTPModal({ userId, type, onSuccess, onClose, title, subt
         <button
           onClick={handleVerify}
           disabled={loading || otp.join('').length !== 6}
-          className="btn-primary w-full"
+          className="btn-primary text-white w-full"
         >
           {loading ? 'Verifying...' : 'Verify'}
         </button>
@@ -128,7 +128,7 @@ export default function OTPModal({ userId, type, onSuccess, onClose, title, subt
             <button
               onClick={handleResend}
               disabled={resending}
-              className="text-primary-400 hover:text-primary-300 text-sm flex items-center gap-2 mx-auto"
+              className="text-[#F5C518] hover:text-primary-300 text-sm flex items-center gap-2 mx-auto"
             >
               <RefreshCw className={`w-4 h-4 ${resending ? 'animate-spin' : ''}`} />
               {resending ? 'Sending...' : 'Resend OTP'}

@@ -441,6 +441,111 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* ── Prizes & Rules Section ── */}
+      <div className="space-y-6">
+
+        {/* Section header */}
+        <div className="flex items-center gap-3">
+          <Trophy className="w-5 h-5" style={{ color: '#BA7517' }} />
+          <h2 className="text-lg font-bold">Prizes & Rewards</h2>
+          <span
+            className="text-[11px] font-medium px-2.5 py-1 rounded-full"
+            style={{ background: '#FAEEDA', color: '#633806', border: '0.5px solid #EF9F27' }}
+          >
+            Top 10 Winners
+          </span>
+        </div>
+
+        {/* Prize grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {[
+            { rank: 1, prize: 'iPhone 17 Pro', sub: 'Latest Apple flagship', accent: '#EF9F27', border: '2px solid #EF9F27' },
+            { rank: 2, prize: 'Laptop', sub: 'Premium notebook', accent: '#B4B2A9', border: '1.5px solid #B4B2A9' },
+            { rank: 3, prize: 'Wireless Headphones', sub: 'Premium audio', accent: '#F0997B', border: '1.5px solid #F0997B' },
+            { rank: 4, prize: 'Smart Watch', sub: 'Fitness & lifestyle', accent: null, border: '' },
+            { rank: 5, prize: 'Tablet', sub: 'Android / iPad', accent: null, border: '' },
+            { rank: 6, prize: 'Action Camera', sub: 'GoPro or equivalent', accent: null, border: '' },
+            { rank: 7, prize: 'Bluetooth Speaker', sub: 'Portable, premium', accent: null, border: '' },
+            { rank: 8, prize: 'Shopping Voucher', sub: 'Tk. 5,000 worth', accent: null, border: '' },
+            { rank: 9, prize: 'Official WC Jersey', sub: 'Authentic edition', accent: null, border: '' },
+            { rank: 10, prize: 'Special Hamper', sub: 'NBWC goodies pack', accent: null, border: '' },
+          ].map(({ rank, prize, sub, border }) => (
+            <div
+              key={rank}
+              className="card relative pt-5"
+              style={border ? { border } : {}}
+            >
+              {rank <= 3 && (
+                <div
+                  className="absolute top-0 right-3 text-[10px] font-medium px-2 py-0.5 rounded-b-md"
+                  style={{
+                    background: rank === 1 ? '#EF9F27' : rank === 2 ? '#B4B2A9' : '#F0997B',
+                    color: rank === 1 ? '#412402' : rank === 2 ? '#2C2C2A' : '#4A1B0C',
+                  }}
+                >
+                  {rank === 1 ? '1st' : rank === 2 ? '2nd' : '3rd'} Place
+                </div>
+              )}
+              <div
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-medium mb-3"
+                style={{
+                  background: rank === 1 ? '#FAEEDA' : rank === 2 ? '#F1EFE8' : rank === 3 ? '#FAECE7' : 'rgba(255,255,255,0.06)',
+                  color: rank === 1 ? '#633806' : rank === 2 ? '#444441' : rank === 3 ? '#712B13' : 'rgba(255,255,255,0.4)',
+                }}
+              >
+                {rank}
+              </div>
+              <Trophy
+                className="w-5 h-5 mb-2"
+                style={{ color: rank === 1 ? '#BA7517' : rank === 2 ? '#888780' : rank === 3 ? '#993C1D' : 'rgba(255,255,255,0.3)' }}
+              />
+              <p className="text-sm font-semibold leading-tight">{prize}</p>
+              <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.38)' }}>{sub}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Rules card */}
+        <div className="card">
+          <h3 className="text-base font-bold mb-4 flex items-center gap-2">
+            <Target className="w-4 h-4" style={{ color: 'rgba(255,255,255,0.4)' }} />
+            Competition rules & policy
+          </h3>
+          <div className="space-y-0 divide-y" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+            {[
+              { num: 1, text: 'Rankings are determined entirely by total points earned across all rounds.', tag: 'Points-based', tagBg: '#E1F5EE', tagColor: '#085041' },
+              { num: 2, text: 'Each correct prediction earns points according to the round — higher rounds carry more weight. Predictions cannot be changed after a match kicks off.', tag: null },
+              { num: 3, text: 'If two or more participants finish with equal points, a tiebreaker quiz will be held between them to determine final ranking.', tag: 'Quiz tiebreaker', tagBg: '#EEEDFE', tagColor: '#3C3489' },
+              { num: 4, text: 'If scores remain tied even after the quiz, the winner will be decided by a fair lottery conducted publicly and transparently.', tag: 'Lottery', tagBg: '#FAEEDA', tagColor: '#633806' },
+              { num: 5, text: 'All participants must abide by decisions made by the NBWC authority. Authority decisions are final and binding in all matters.', tag: 'Authority final', tagBg: '#FCEBEB', tagColor: '#791F1F' },
+              { num: 6, text: 'Any attempt to manipulate predictions, exploit system vulnerabilities, or engage in unfair conduct will result in immediate disqualification without appeal.', tag: null },
+              { num: 7, text: 'Winners will be announced after the FIFA World Cup 2026 Final. Prize distribution details will be communicated directly to winners by the NBWC authority.', tag: null },
+            ].map(({ num, text, tag, tagBg, tagColor }) => (
+              <div key={num} className="flex items-start gap-3 py-3">
+                <div
+                  className="w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-medium flex-shrink-0 mt-0.5"
+                  style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)' }}
+                >
+                  {num}
+                </div>
+                <p className="text-sm leading-relaxed ">
+                  {text}
+                  {tag && (
+                    <span
+                      className="inline-block text-[10px] font-medium px-2 py-0.5 rounded-full ml-2 align-middle"
+                      style={{ background: tagBg, color: tagColor }}
+                    >
+                      {tag}
+                    </span>
+                  )}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
