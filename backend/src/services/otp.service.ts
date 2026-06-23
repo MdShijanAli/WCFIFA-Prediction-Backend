@@ -2,7 +2,6 @@ import { randomInt } from "crypto";
 import { config } from "../config";
 import { prisma } from "../lib/prisma";
 
-// In dev mode, log OTP to console instead of sending
 const isDev = config.nodeEnv === "development";
 
 export const generateOTP = (): string => {
@@ -14,7 +13,6 @@ export const createOTP = async (
   type: string,
   target: string,
 ): Promise<string> => {
-  // Invalidate previous OTPs of same type
   await prisma.oTP.updateMany({
     where: { userId, type, used: false },
     data: { used: true },
