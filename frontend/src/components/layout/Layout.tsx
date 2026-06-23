@@ -18,6 +18,7 @@ import TechtrozWhiteImage from "@/assets/techtrioz-white.jpeg";
 import TechtrozBlackImage from "@/assets/texhtrioz-black.jpeg";
 import MCQBanner from "@/assets/mcq-banner.jpeg";
 import MCQAds from "@/assets/mcq-ads.jpeg";
+import Marquee from "react-fast-marquee";
 
 const navItems = [
   { path: "/dashboard", icon: Home, label: "Dashboard" },
@@ -338,17 +339,21 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <div className="sticky top-28 bg-[#111827] text-white overflow-hidden border-b py-2 border-gray-800 animate-donation-marquee flex w-max gap-10 text-sm font-medium">
-          {Array(2).fill([
-            "💡 If you like our prediction platform, support us via donation",
-            "📞 Donation Number: 01571261165 (bKash / Nagad)",
-            "❤️ Your support helps us improve experience",
-            "⚽ NBWC Prediction — Football lovers platform",
-          ]).flat().map((text, i) => (
-            <span key={i} className="whitespace-nowrap">
-              {text}
-            </span>
-          ))}
+        <div className="sticky top-28 bg-[#111827] text-white overflow-hidden border-b py-2 border-gray-800  flex gap-10 text-sm font-medium">
+          <Marquee speed={30} gradient={false}>
+            {Array(2).fill([
+              "💡 If you like our prediction platform, support us via donation",
+              "📞 Donation Number: 01571261165 (bKash / Nagad)",
+              "❤️ Your support helps us improve experience",
+              "⚽ NBWC Prediction — Football lovers platform",
+            ]).flat().map((text, i) => (
+              <span key={i} className="whitespace-nowrap mx-3">
+                {text}
+              </span>
+            ))}
+          </Marquee>
+
+
         </div>
 
         <main className="p-6 bg-[#F8F9FA]">{children}</main>
@@ -360,21 +365,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           100% { transform: translateX(-50%); }
         }
         .animate-marquee { animation: marquee 40s linear infinite; }
-
-@keyframes donation-marquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
-
-.animate-donation-marquee {
-  display: flex;
-  width: max-content;
-  animation: donation-marquee 60s linear infinite;
-}
       `}</style>
     </div>
   );
