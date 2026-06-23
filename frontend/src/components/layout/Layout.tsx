@@ -303,7 +303,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
           <div className="flex items-center gap-2 font-semibold text-gray-900">
             <Trophy className="w-5 h-5 text-[#F5C518]" />
-            NBWC Prediction
+            inal Whistle 2026
           </div>
         </header>
 
@@ -343,9 +343,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <Marquee speed={30} gradient={false}>
             {Array(2).fill([
               "💡 If you like our prediction platform, support us via donation",
-              "📞 Donation Number: 01571261165 (bKash / Nagad)",
+              "📞 Donation Number: +880 1711-541834 (bKash / Nagad)",
               "❤️ Your support helps us improve experience",
-              "⚽ NBWC Prediction — Football lovers platform",
+              "⚽ inal Whistle 2026 — Football lovers platform",
             ]).flat().map((text, i) => (
               <span key={i} className="whitespace-nowrap mx-3">
                 {text}

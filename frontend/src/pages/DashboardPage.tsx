@@ -469,7 +469,7 @@ export default function DashboardPage() {
             { rank: 7, prize: 'Bluetooth Speaker', sub: 'Portable, premium', accent: null, border: '' },
             { rank: 8, prize: 'Shopping Voucher', sub: 'Tk. 5,000 worth', accent: null, border: '' },
             { rank: 9, prize: 'Official WC Jersey', sub: 'Authentic edition', accent: null, border: '' },
-            { rank: 10, prize: 'Special Hamper', sub: 'NBWC goodies pack', accent: null, border: '' },
+            { rank: 10, prize: 'Special Hamper', sub: 'inal Whistle 2026 goodies pack', accent: null, border: '' },
           ].map(({ rank, prize, sub, border }) => (
             <div
               key={rank}
@@ -518,9 +518,9 @@ export default function DashboardPage() {
               { num: 2, text: 'Each correct prediction earns points according to the round — higher rounds carry more weight. Predictions cannot be changed after a match kicks off.', tag: null },
               { num: 3, text: 'If two or more participants finish with equal points, a tiebreaker quiz will be held between them to determine final ranking.', tag: 'Quiz tiebreaker', tagBg: '#EEEDFE', tagColor: '#3C3489' },
               { num: 4, text: 'If scores remain tied even after the quiz, the winner will be decided by a fair lottery conducted publicly and transparently.', tag: 'Lottery', tagBg: '#FAEEDA', tagColor: '#633806' },
-              { num: 5, text: 'All participants must abide by decisions made by the NBWC authority. Authority decisions are final and binding in all matters.', tag: 'Authority final', tagBg: '#FCEBEB', tagColor: '#791F1F' },
+              { num: 5, text: 'All participants must abide by decisions made by the inal Whistle 2026 authority. Authority decisions are final and binding in all matters.', tag: 'Authority final', tagBg: '#FCEBEB', tagColor: '#791F1F' },
               { num: 6, text: 'Any attempt to manipulate predictions, exploit system vulnerabilities, or engage in unfair conduct will result in immediate disqualification without appeal.', tag: null },
-              { num: 7, text: 'Winners will be announced after the FIFA World Cup 2026 Final. Prize distribution details will be communicated directly to winners by the NBWC authority.', tag: null },
+              { num: 7, text: 'Winners will be announced after the FIFA World Cup 2026 Final. Prize distribution details will be communicated directly to winners by the inal Whistle 2026 authority.', tag: null },
             ].map(({ num, text, tag, tagBg, tagColor }) => (
               <div key={num} className="flex items-start gap-3 py-3">
                 <div

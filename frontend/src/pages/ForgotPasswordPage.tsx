@@ -64,7 +64,7 @@ export default function ForgotPasswordPage() {
           <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center">
             <Trophy className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-white font-bold text-xl">NBWC Prediction</h1>
+          <h1 className="text-white font-bold text-xl">inal Whistle 2026 Prediction</h1>
         </div>
 
         <div className="card">
@@ -72,14 +72,12 @@ export default function ForgotPasswordPage() {
           <div className="flex items-center gap-2 mb-6">
             {['Phone', 'OTP', 'Password'].map((s, i) => (
               <React.Fragment key={s}>
-                <div className={`flex items-center gap-1.5 text-xs font-medium ${
-                  ['phone', 'otp', 'password', 'done'].indexOf(step) >= i
+                <div className={`flex items-center gap-1.5 text-xs font-medium ${['phone', 'otp', 'password', 'done'].indexOf(step) >= i
                     ? 'text-primary-400' : 'text-gray-600'
-                }`}>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-                    ['phone', 'otp', 'password', 'done'].indexOf(step) >= i
+                  }`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${['phone', 'otp', 'password', 'done'].indexOf(step) >= i
                       ? 'bg-primary-600 text-white' : 'bg-gray-800 text-gray-600'
-                  }`}>{i + 1}</div>
+                    }`}>{i + 1}</div>
                   {s}
                 </div>
                 {i < 2 && <div className="flex-1 h-px bg-gray-800" />}

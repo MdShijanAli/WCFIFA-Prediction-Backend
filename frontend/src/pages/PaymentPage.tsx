@@ -29,7 +29,7 @@ export default function PaymentPage() {
         updateUser({ hasPaid: true });
         navigate('/dashboard');
       }
-    }).catch(() => {}).finally(() => setChecking(false));
+    }).catch(() => { }).finally(() => setChecking(false));
   }, []);
 
   const handleInitiatePayment = async () => {
@@ -95,7 +95,7 @@ export default function PaymentPage() {
           <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center">
             <Trophy className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-white font-bold text-xl">NBWC Prediction</h1>
+          <h1 className="text-white font-bold text-xl">inal Whistle 2026 Prediction</h1>
         </div>
 
         <div className="card">

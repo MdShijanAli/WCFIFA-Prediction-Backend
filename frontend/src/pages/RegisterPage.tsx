@@ -122,7 +122,7 @@ export default function RegisterPage() {
                   textShadow: '0 2px 32px rgba(245,197,24,0.4)',
                 }}
               >
-                NBWC 2026
+                inal Whistle 2026 2026
               </h1>
               <p
                 className="text-[11px] tracking-[3.5px] uppercase mt-1.5"
@@ -205,7 +205,7 @@ export default function RegisterPage() {
               <Star className="w-4 h-4" style={{ color: '#F5C518' }} />
             </div>
             <div>
-              <p className="text-sm font-semibold tracking-wide" style={{ color: '#0f1623' }}>NBWC Predictions</p>
+              <p className="text-sm font-semibold tracking-wide" style={{ color: '#0f1623' }}>inal Whistle 2026 Predictions</p>
               <p className="text-[10px]" style={{ color: '#9494a8' }}>FIFA World Cup Qualifier</p>
             </div>
           </div>
