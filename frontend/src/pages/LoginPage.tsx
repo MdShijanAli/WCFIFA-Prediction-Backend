@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Eye, EyeOff, Trophy, Phone, Lock } from 'lucide-react';
+import { Eye, EyeOff, Phone, Lock, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { authApi } from '../services/api';
@@ -11,6 +11,50 @@ interface LoginForm {
   phone: string;
   password: string;
 }
+
+// World Cup 2026 top contenders — flag images from flagcdn.com
+export const wcTeams = [
+  { name: 'Brazil', img: 'https://flagcdn.com/w320/br.png' },
+  { name: 'France', img: 'https://flagcdn.com/w320/fr.png' },
+  { name: 'Argentina', img: 'https://flagcdn.com/w320/ar.png' },
+  { name: 'England', img: 'https://flagcdn.com/w320/gb-eng.png' },
+  { name: 'Germany', img: 'https://flagcdn.com/w320/de.png' },
+  { name: 'Spain', img: 'https://flagcdn.com/w320/es.png' },
+  { name: 'Portugal', img: 'https://flagcdn.com/w320/pt.png' },
+  { name: 'Netherlands', img: 'https://flagcdn.com/w320/nl.png' },
+  { name: 'Japan', img: 'https://flagcdn.com/w320/jp.png' },
+];
+
+export const pointsData = [
+  { label: 'Round of 32', pts: '2' },
+  { label: 'Semi Final', pts: '10' },
+  { label: 'Final', pts: '20' },
+];
+
+export const TrophyIcon = () => (
+  <svg
+    width="54"
+    height="66"
+    viewBox="0 0 72 88"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    style={{ filter: 'drop-shadow(0 0 22px rgba(245,197,24,0.65))' }}
+  >
+    <path d="M24 72 L48 72 L44 80 L28 80 Z" fill="#F5C518" opacity="0.9" />
+    <rect x="22" y="80" width="28" height="5" rx="2" fill="#F5C518" />
+    <path
+      d="M28 48 C28 48 20 44 16 36 C12 28 14 20 14 20 L22 20 L22 28 C22 38 28 44 36 48 C44 44 50 38 50 28 L50 20 L58 20 C58 20 60 28 56 36 C52 44 44 48 44 48 L44 72 L28 72 Z"
+      fill="#F5C518"
+    />
+    <path
+      d="M22 20 L50 20 L50 12 C50 8 47 6 44 6 L28 6 C25 6 22 8 22 12 Z"
+      fill="#F5C518"
+      opacity="0.85"
+    />
+    <path d="M28 6 C28 4 30 2 36 2 C42 2 44 4 44 6" stroke="#F5C518" strokeWidth="2" fill="none" opacity="0.5" />
+    <ellipse cx="36" cy="22" rx="8" ry="5" fill="rgba(255,255,255,0.15)" />
+  </svg>
+);
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -46,113 +90,338 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 flex">
-      {/* Left side - Branding */}
-      <div className="hidden lg:flex flex-col justify-center items-center w-1/2 bg-gradient-to-br from-primary-900 to-gray-900 p-12 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          {Array.from({ length: 20 }).map((_, i) => (
-            <div key={i} className="absolute text-6xl" style={{
-              left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`,
-              transform: 'rotate(45deg)', opacity: 0.3
-            }}>⚽</div>
+    <div className="min-h-screen flex" style={{ background: '#060b18' }}>
+
+      {/* ════════════════════════════════
+           LEFT PANEL — Flag collage
+      ════════════════════════════════ */}
+      <div
+        className="hidden lg:block w-[52%] relative overflow-hidden"
+        style={{ background: '#060b18' }}
+      >
+        {/* 3×3 flag mosaic */}
+        <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 gap-1 p-1" style={{ opacity: 0.7 }}>
+          {wcTeams.map((team) => (
+            <div key={team.name} className="relative overflow-hidden rounded-xl">
+              <img
+                src={team.img}
+                alt={team.name}
+                className="w-full h-full object-cover"
+              />
+              {/* Per-cell dark tint */}
+              <div className="absolute inset-0 rounded-xl" style={{ background: 'rgba(6,11,24,0.38)' }} />
+              {/* Team name at bottom */}
+              <div
+                className="absolute bottom-0 left-0 right-0 px-2.5 py-2 rounded-b-xl"
+                style={{ background: 'linear-gradient(to top, rgba(6,11,24,0.9), transparent)' }}
+              >
+                <p className="text-white text-[9px] font-semibold tracking-[2px] uppercase">
+                  {team.name}
+                </p>
+              </div>
+            </div>
           ))}
         </div>
-        <div className="relative z-10 text-center">
-          <div className="w-24 h-24 bg-primary-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
-            <Trophy className="w-14 h-14 text-white" />
+
+        {/* Full panel gradient overlay — dark top & bottom, transparent middle */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              'linear-gradient(to bottom, rgba(6,11,24,0.72) 0%, rgba(6,11,24,0.05) 30%, rgba(6,11,24,0.05) 65%, rgba(6,11,24,0.88) 100%)',
+          }}
+        />
+
+        {/* Gold top glow */}
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            top: '-80px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '420px',
+            height: '420px',
+            background: 'radial-gradient(circle, rgba(245,197,24,0.14) 0%, transparent 65%)',
+          }}
+        />
+
+        {/* ── Content overlay ── */}
+        <div className="absolute inset-0 flex flex-col justify-between p-10 z-10">
+
+          {/* Top: Trophy + brand */}
+          <div className="flex flex-col items-start gap-3">
+            <TrophyIcon />
+            <div>
+              <h1
+                className="leading-none tracking-widest"
+                style={{
+                  fontFamily: "'Bebas Neue', sans-serif",
+                  fontSize: '54px',
+                  color: '#F5C518',
+                  textShadow: '0 2px 32px rgba(245,197,24,0.4)',
+                }}
+              >
+                NBWC 2026
+              </h1>
+              <p
+                className="text-[11px] tracking-[3.5px] uppercase mt-1.5"
+                style={{ color: 'rgba(255,255,255,0.42)' }}
+              >
+                World Cup Prediction League
+              </p>
+            </div>
           </div>
-          <h1 className="text-4xl font-bold text-white mb-4">NBWC Prediction</h1>
-          <p className="text-primary-300 text-lg max-w-sm">
-            Predict FIFA World Cup Qualifying matches and compete with players nationwide!
-          </p>
-          <div className="mt-10 grid grid-cols-3 gap-6 text-center">
-            {[
-              { label: 'Round of 32', points: '2 pts' },
-              { label: 'Semi Final', points: '10 pts' },
-              { label: 'Final', points: '20 pts' },
-            ].map(item => (
-              <div key={item.label} className="bg-white/10 rounded-2xl p-4">
-                <div className="text-yellow-400 font-bold text-xl">{item.points}</div>
-                <div className="text-gray-300 text-xs mt-1">{item.label}</div>
-              </div>
-            ))}
+
+          {/* Bottom: Tagline + points strip */}
+          <div>
+            <p
+              className="font-bold leading-tight mb-2"
+              style={{
+                fontSize: '26px',
+                color: '#ffffff',
+                textShadow: '0 1px 16px rgba(0,0,0,0.7)',
+              }}
+            >
+              Predict. Compete.{' '}
+              <span style={{ color: '#F5C518' }}>Win.</span>
+            </p>
+            <p
+              className="text-sm leading-relaxed mb-6"
+              style={{ color: 'rgba(255,255,255,0.42)', maxWidth: '300px' }}
+            >
+              Pick match winners across every round and rise to the top of Bangladesh's national leaderboard.
+            </p>
+
+            <div className="grid grid-cols-3 gap-2.5">
+              {pointsData.map(({ label, pts }) => (
+                <div
+                  key={label}
+                  className="rounded-xl p-3 text-center"
+                  style={{
+                    background: 'rgba(255,255,255,0.07)',
+                    border: '0.5px solid rgba(245,197,24,0.22)',
+                    backdropFilter: 'blur(12px)',
+                  }}
+                >
+                  <p
+                    style={{
+                      fontFamily: "'Bebas Neue', sans-serif",
+                      fontSize: '30px',
+                      color: '#F5C518',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {pts}
+                  </p>
+                  <p className="text-[10px] mt-1 tracking-wide" style={{ color: 'rgba(255,255,255,0.38)' }}>
+                    {label}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Right side - Form */}
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-md">
+      {/* ════════════════════════════════
+           RIGHT PANEL — Form
+      ════════════════════════════════ */}
+      <div
+        className="flex-1 flex flex-col justify-center px-8 py-10 sm:px-12"
+        style={{ background: '#0d1220' }}
+      >
+        <div className="w-full max-w-sm mx-auto">
+
+          {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center">
-              <Trophy className="w-6 h-6 text-white" />
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ background: '#F5C518' }}
+            >
+              <Star className="w-5 h-5" style={{ color: '#060b18' }} />
             </div>
-            <h1 className="text-white font-bold text-xl">NBWC Prediction</h1>
+            <span className="font-semibold text-white text-base tracking-wide">NBWC Predictions</span>
           </div>
 
-          <h2 className="text-3xl font-bold text-white mb-2">Welcome back</h2>
-          <p className="text-gray-400 mb-8">Sign in to your account to continue</p>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          {/* Desktop logo row */}
+          <div className="hidden lg:flex items-center gap-3 mb-7">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: '#F5C518' }}
+            >
+              <Star className="w-5 h-5" style={{ color: '#060b18' }} />
+            </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Phone Number</label>
+              <p className="text-sm font-semibold text-white tracking-wide">NBWC Predictions</p>
+              <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                FIFA World Cup Qualifier
+              </p>
+            </div>
+          </div>
+
+          {/* Live badge */}
+          <div className="mb-5">
+            <span
+              className="inline-flex items-center gap-2 text-[11px] font-medium tracking-widest uppercase px-3 py-1.5 rounded-full"
+              style={{
+                background: 'rgba(220,38,38,0.12)',
+                border: '0.5px solid rgba(220,38,38,0.3)',
+                color: '#f87171',
+              }}
+            >
+              <span
+                className="w-1.5 h-1.5 rounded-full animate-pulse"
+                style={{ background: '#ef4444' }}
+              />
+              Round of 32 open for predictions
+            </span>
+          </div>
+
+          <h2 className="text-2xl font-semibold text-white mb-1">Welcome back</h2>
+          <p className="text-sm mb-7" style={{ color: 'rgba(255,255,255,0.38)' }}>
+            Sign in and climb the national leaderboard.
+          </p>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
+            {/* Phone */}
+            <div>
+              <label
+                className="block text-[11px] font-medium tracking-widest uppercase mb-2"
+                style={{ color: 'rgba(255,255,255,0.45)' }}
+              >
+                Phone number
+              </label>
               <div className="relative">
-                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <Phone
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4"
+                  style={{ color: 'rgba(255,255,255,0.3)' }}
+                />
                 <input
                   {...register('phone', { required: 'Phone number is required' })}
                   type="tel"
                   placeholder="+880XXXXXXXXXX"
-                  className="input-field pl-12"
+                  className="w-full rounded-xl text-sm text-white outline-none pl-11 pr-4 py-3 transition-all"
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    color: '#fff',
+                  }}
+                  onFocus={e => {
+                    e.target.style.border = '0.5px solid rgba(245,197,24,0.55)';
+                    e.target.style.background = 'rgba(245,197,24,0.04)';
+                  }}
+                  onBlur={e => {
+                    e.target.style.border = '0.5px solid rgba(255,255,255,0.1)';
+                    e.target.style.background = 'rgba(255,255,255,0.05)';
+                  }}
                 />
               </div>
-              {errors.phone && <p className="text-red-400 text-sm mt-1">{errors.phone.message}</p>}
+              {errors.phone && (
+                <p className="text-red-400 text-xs mt-1.5">{errors.phone.message}</p>
+              )}
             </div>
 
+            {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+              <label
+                className="block text-[11px] font-medium tracking-widest uppercase mb-2"
+                style={{ color: 'rgba(255,255,255,0.45)' }}
+              >
+                Password
+              </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <Lock
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4"
+                  style={{ color: 'rgba(255,255,255,0.3)' }}
+                />
                 <input
                   {...register('password', { required: 'Password is required' })}
                   type={showPass ? 'text' : 'password'}
                   placeholder="••••••••"
-                  className="input-field pl-12 pr-12"
+                  className="w-full rounded-xl text-sm text-white outline-none pl-11 pr-12 py-3 transition-all"
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '0.5px solid rgba(255,255,255,0.1)',
+                    color: '#fff',
+                  }}
+                  onFocus={e => {
+                    e.target.style.border = '0.5px solid rgba(245,197,24,0.55)';
+                    e.target.style.background = 'rgba(245,197,24,0.04)';
+                  }}
+                  onBlur={e => {
+                    e.target.style.border = '0.5px solid rgba(255,255,255,0.1)';
+                    e.target.style.background = 'rgba(255,255,255,0.05)';
+                  }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPass(!showPass)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
+                  style={{ color: 'rgba(255,255,255,0.3)' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
                 >
-                  {showPass ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              {errors.password && <p className="text-red-400 text-sm mt-1">{errors.password.message}</p>}
+              {errors.password && (
+                <p className="text-red-400 text-xs mt-1.5">{errors.password.message}</p>
+              )}
             </div>
 
+            {/* Forgot password */}
             <div className="flex justify-end">
-              <Link to="/forgot-password" className="text-primary-400 hover:text-primary-300 text-sm">
+              <Link
+                to="/forgot-password"
+                className="text-xs transition-opacity"
+                style={{ color: '#F5C518', opacity: 0.8 }}
+                onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                onMouseLeave={e => (e.currentTarget.style.opacity = '0.8')}
+              >
                 Forgot password?
               </Link>
             </div>
 
+            {/* Sign in button */}
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full text-center"
+              className="w-full rounded-xl py-3 text-sm font-semibold tracking-wide transition-opacity disabled:opacity-60"
+              style={{ background: '#F5C518', color: '#060b18' }}
+              onMouseEnter={e => { if (!loading) e.currentTarget.style.opacity = '0.88'; }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
 
-          <p className="text-center text-gray-400 mt-6">
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
+            <span
+              className="text-[11px] tracking-widest uppercase"
+              style={{ color: 'rgba(255,255,255,0.22)' }}
+            >
+              New here?
+            </span>
+            <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
+          </div>
+
+          <p className="text-center text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>
             Don't have an account?{' '}
-            <Link to="/register" className="text-primary-400 hover:text-primary-300 font-medium">
-              Sign up
+            <Link
+              to="/register"
+              className="font-medium"
+              style={{ color: '#F5C518' }}
+            >
+              Sign up free
             </Link>
           </p>
         </div>
       </div>
 
+      {/* OTP Modal */}
       {otpState && (
         <OTPModal
           userId={otpState.userId}
