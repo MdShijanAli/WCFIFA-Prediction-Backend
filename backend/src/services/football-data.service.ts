@@ -263,9 +263,6 @@ export async function syncWorldCupMatches(
         result.created++;
       }
 
-      // Queue for scoring if match is COMPLETED with a winner AND
-      // there are any unscored predictions (isCorrect === null).
-      // This handles: first sync after completion, re-runs, winner corrections.
       if (winnerId && newStatus === MatchStatus.COMPLETED) {
         const unscoredCount = await prisma.prediction.count({
           where: {
@@ -285,9 +282,6 @@ export async function syncWorldCupMatches(
         }
       }
 
-      // Queue for scoring if:
-      //   • match just became COMPLETED, OR
-      //   • was already COMPLETED but winner changed (correction)
       if (winnerId && isNowCompleted && (!wasCompleted || winnerChanged)) {
         toScore.push({ matchId: savedMatchId, winnerId, round });
       }
