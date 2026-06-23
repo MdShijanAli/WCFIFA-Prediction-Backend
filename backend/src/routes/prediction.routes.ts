@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate, requirePaid } from "../middleware/auth";
+import { authenticate, requiredAccess } from "../middleware/auth";
 import {
   submitPrediction,
   getUserPredictions,
@@ -8,7 +8,7 @@ import {
 
 const router = Router();
 
-router.use(authenticate, requirePaid);
+router.use(authenticate, requiredAccess);
 
 router.post("/", submitPrediction);
 router.post("/bulk", submitBulkPredictions);

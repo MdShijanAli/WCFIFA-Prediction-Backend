@@ -38,17 +38,17 @@ export const authenticate = async (
   }
 };
 
-export const requirePaid = async (
+export const requiredAccess = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  const payment = await prisma.payment.findUnique({
-    where: { userId: req.userId },
+  const user = await prisma.user.findUnique({
+    where: { id: req.userId },
   });
 
-  if (!payment || payment.status !== "COMPLETED") {
-    res.status(403).json({ message: "Registration fee payment required" });
+  if (!user || !user.accessUnlocked) {
+    res.status(403).json({ message: "User access not unlocked" });
     return;
   }
 
