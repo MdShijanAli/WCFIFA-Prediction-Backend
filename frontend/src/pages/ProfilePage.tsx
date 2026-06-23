@@ -15,7 +15,7 @@ export default function ProfilePage() {
     try {
       const res = await paymentApi.getStatus();
       setPaymentStatus(res.data.payment);
-    } catch {}
+    } catch { }
   };
 
   React.useEffect(() => { loadPayment(); }, []);
@@ -53,16 +53,16 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-white">Profile</h1>
+      <h1 className="text-2xl font-bold ">Profile</h1>
 
       {/* Profile card */}
       <div className="card">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-primary-700 flex items-center justify-center text-2xl font-bold text-white">
+          <div className="w-16 h-16 rounded-2xl bg-[#F5C518] flex items-center justify-center text-2xl font-bold text-white">
             {user?.name?.[0]?.toUpperCase()}
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">{user?.name}</h2>
+            <h2 className="text-xl font-bold ">{user?.name}</h2>
             <p className="text-gray-400">{user?.gender ? genderLabel[user.gender] : ''}</p>
             {user?.dob && (
               <p className="text-gray-500 text-sm">
@@ -74,16 +74,16 @@ export default function ProfilePage() {
 
         <div className="space-y-4">
           {/* Phone */}
-          <div className="flex items-center justify-between p-4 bg-gray-800 rounded-xl">
+          <div className="flex items-center justify-between p-4 border rounded-xl">
             <div className="flex items-center gap-3">
               <Phone className="w-5 h-5 text-gray-400" />
               <div>
-                <p className="text-white font-medium">{user?.phone}</p>
+                <p className=" font-medium">{user?.phone}</p>
                 <p className="text-gray-500 text-xs">Phone Number</p>
               </div>
             </div>
             {user?.isPhoneVerified ? (
-              <span className="flex items-center gap-1.5 text-primary-400 text-sm">
+              <span className="flex items-center gap-1.5 text-[#F5C518] text-sm">
                 <CheckCircle className="w-4 h-4" /> Verified
               </span>
             ) : (
@@ -92,22 +92,22 @@ export default function ProfilePage() {
           </div>
 
           {/* Email */}
-          <div className="p-4 bg-gray-800 rounded-xl">
+          <div className="p-4 border rounded-xl">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-gray-400" />
                 <div>
-                  <p className="text-white font-medium">{user?.email || 'Not provided'}</p>
+                  <p className=" font-medium">{user?.email || 'Not provided'}</p>
                   <p className="text-gray-500 text-xs">Email Address</p>
                 </div>
               </div>
               {user?.email && (
                 user?.isEmailVerified ? (
-                  <span className="flex items-center gap-1.5 text-primary-400 text-sm">
+                  <span className="flex items-center gap-1.5 text-[#F5C518] text-sm">
                     <CheckCircle className="w-4 h-4" /> Verified
                   </span>
                 ) : (
-                  <button onClick={sendEmailOTP} className="text-primary-400 hover:text-primary-300 text-sm">
+                  <button onClick={sendEmailOTP} className="text-[#F5C518] hover:text-[#F5C518]/80 text-sm">
                     Verify Email
                   </button>
                 )
@@ -139,28 +139,27 @@ export default function ProfilePage() {
 
       {/* Payment status */}
       <div className="card">
-        <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-          <CreditCard className="w-5 h-5 text-primary-400" />
+        <h3 className="font-bold  mb-4 flex items-center gap-2">
+          <CreditCard className="w-5 h-5 text-[#F5C518]" />
           Payment Status
         </h3>
         {paymentStatus ? (
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-gray-800 rounded-xl">
+            <div className="flex items-center justify-between p-3 border rounded-xl">
               <span className="text-gray-400">Status</span>
-              <span className={`font-semibold ${
-                paymentStatus.status === 'COMPLETED' ? 'text-primary-400' :
+              <span className={`font-semibold ${paymentStatus.status === 'COMPLETED' ? 'text-[#F5C518]' :
                 paymentStatus.status === 'FAILED' ? 'text-red-400' : 'text-yellow-400'
-              }`}>
+                }`}>
                 {paymentStatus.status}
               </span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-gray-800 rounded-xl">
+            <div className="flex items-center justify-between p-3 border rounded-xl">
               <span className="text-gray-400">Amount</span>
-              <span className="text-white font-semibold">৳{paymentStatus.amount}</span>
+              <span className=" font-semibold">৳{paymentStatus.amount}</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-gray-800 rounded-xl">
+            <div className="flex items-center justify-between p-3 border rounded-xl">
               <span className="text-gray-400">Transaction ID</span>
-              <span className="text-white font-mono text-sm">{paymentStatus.transactionId}</span>
+              <span className=" font-mono text-sm">{paymentStatus.transactionId}</span>
             </div>
           </div>
         ) : (
@@ -172,15 +171,15 @@ export default function ProfilePage() {
 
       {/* Security */}
       <div className="card">
-        <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-          <Shield className="w-5 h-5 text-primary-400" />
+        <h3 className="font-bold  mb-4 flex items-center gap-2">
+          <Shield className="w-5 h-5 text-[#F5C518]" />
           Security
         </h3>
-        <div className="flex items-center justify-between p-4 bg-gray-800 rounded-xl">
+        <div className="flex items-center justify-between p-4 border rounded-xl">
           <span className="text-gray-300">Password</span>
           <button
             onClick={() => window.location.href = '/forgot-password'}
-            className="text-primary-400 hover:text-primary-300 text-sm"
+            className="text-[#F5C518] hover:text-[#F5C518]/80 text-sm"
           >
             Change Password
           </button>

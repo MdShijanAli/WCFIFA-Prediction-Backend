@@ -84,7 +84,7 @@ export default function PredictPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">Make Predictions</h1>
+        <h1 className="text-2xl font-bold ">Make Predictions</h1>
         <p className="text-gray-400 mt-1">Pick winners for each match before kickoff</p>
       </div>
 
@@ -101,14 +101,14 @@ export default function PredictPage() {
               className={`
                 px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2
                 ${activeRound === round
-                  ? 'bg-primary-600 text-white'
+                  ? 'bg-[#F5C518] text-black'
                   : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
                 }
               `}
             >
               {ROUND_LABELS[round]}
               {complete ? (
-                <CheckCircle className="w-3.5 h-3.5 text-primary-300" />
+                <CheckCircle className="w-3.5 h-3.5 text-[#F5C518]" />
               ) : (
                 <span className="bg-black/20 text-xs px-1.5 rounded">
                   {rSaved}/{rMatches.length}
@@ -120,11 +120,11 @@ export default function PredictPage() {
       </div>
 
       {/* Points info */}
-      <div className="flex items-center gap-3 bg-primary-900/30 border border-primary-800 rounded-xl px-4 py-3">
-        <Target className="w-5 h-5 text-primary-400" />
-        <span className="text-primary-300 text-sm">
+      <div className="flex items-center gap-3 bg-[#F5C518]/30 border border-[#F5C518] rounded-xl px-4 py-3">
+        <Target className="w-5 h-5 text-[#F5C518]" />
+        <span className="text-sm">
           Each correct prediction in {ROUND_LABELS[activeRound]} earns{' '}
-          <span className="font-bold text-white">{ROUND_POINTS[activeRound]} points</span>
+          <span className="font-bold text-black">{ROUND_POINTS[activeRound]} points</span>
         </span>
       </div>
 
@@ -167,7 +167,7 @@ export default function PredictPage() {
                   <div className="text-center">
                     {isCompleted ? (
                       <div>
-                        <div className="text-2xl font-bold text-white">
+                        <div className="text-2xl font-bold">
                           {match.homeScore} - {match.awayScore}
                         </div>
                         <div className="text-xs text-gray-500 mt-1">Full Time</div>
@@ -205,10 +205,10 @@ export default function PredictPage() {
 
       {/* Save button */}
       {roundMatches.some(m => m.status === 'SCHEDULED' && new Date() < new Date(m.scheduledAt)) && (
-        <div className="flex items-center justify-between sticky bottom-4 bg-gray-900 border border-gray-800 rounded-2xl p-4">
+        <div className="flex items-center justify-between sticky bottom-4  border border-gray-800 rounded-2xl p-4">
           <div className="text-sm text-gray-400">
-            <span className="text-white font-medium">{roundPredCount}</span> of{' '}
-            <span className="text-white font-medium">{roundMatches.length}</span> predictions made
+            <span className="font-medium">{roundPredCount}</span> of{' '}
+            <span className="font-medium">{roundMatches.length}</span> predictions made
           </div>
           <button
             onClick={handleSaveRound}
@@ -232,10 +232,10 @@ function TeamButton({ team, selected, correct, predicted, locked, onClick }: {
   onClick: () => void;
 }) {
   const getStyle = () => {
-    if (correct === true) return 'bg-primary-900/50 border-primary-500';
-    if (correct === false) return 'bg-red-900/20 border-red-800';
-    if (selected) return 'bg-primary-900/50 border-primary-500';
-    return 'bg-gray-800 border-gray-700 hover:border-gray-600';
+    if (correct === true) return 'border-primary-500';
+    if (correct === false) return 'border-red-800';
+    if (selected) return ' border-primary-500';
+    return 'border-gray-700 hover:border-gray-600';
   };
 
   return (

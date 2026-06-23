@@ -46,24 +46,24 @@ export default function LeaderboardPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">Leaderboard</h1>
+        <h1 className="text-2xl font-bold ">Leaderboard</h1>
         <p className="text-gray-400 mt-1">{total} players competing</p>
       </div>
 
       {/* My position */}
       {myRank && (
-        <div className="bg-primary-900/30 border border-primary-700 rounded-2xl p-4">
+        <div className="border border-primary-700 rounded-2xl p-4">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-10 h-10 bg-primary-700 rounded-xl">
               <Star className="w-5 h-5 text-yellow-400" />
             </div>
             <div className="flex-1">
-              <div className="text-sm text-primary-300">Your Position</div>
-              <div className="text-white font-bold">{user?.name}</div>
+              <div className="text-sm ">Your Position</div>
+              <div className="font-bold">{user?.name}</div>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-white">#{myRank.rank || '-'}</div>
-              <div className="text-primary-400 text-sm">{myRank.totalPoints} pts</div>
+              <div className="text-2xl font-bold ">#{myRank.rank || '-'}</div>
+              <div className="text-sm">{myRank.totalPoints} pts</div>
             </div>
           </div>
           <div className="grid grid-cols-6 gap-1 mt-3">
@@ -75,9 +75,9 @@ export default function LeaderboardPage() {
               { label: 'SF', pts: myRank.sfPoints },
               { label: 'Final', pts: myRank.finalPoints },
             ].map(r => (
-              <div key={r.label} className="bg-primary-900/50 rounded-lg p-1.5 text-center">
-                <div className="text-white text-xs font-bold">{r.pts}</div>
-                <div className="text-primary-400 text-xs">{r.label}</div>
+              <div key={r.label} className="border rounded-lg p-1.5 text-center">
+                <div className="text-xs font-bold">{r.pts}</div>
+                <div className="text-[#F5C518] text-xs">{r.label}</div>
               </div>
             ))}
           </div>
@@ -87,13 +87,13 @@ export default function LeaderboardPage() {
       {/* Table */}
       <div className="card p-0 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-800">
-          <h3 className="font-semibold text-white">All Players</h3>
+          <h3 className="font-semibold">All Players</h3>
         </div>
 
         {loading ? (
           <div className="p-6 space-y-3">
             {[1, 2, 3, 4, 5].map(i => (
-              <div key={i} className="h-16 bg-gray-800 rounded-xl animate-pulse" />
+              <div key={i} className="h-16 rounded-xl animate-pulse" />
             ))}
           </div>
         ) : (
@@ -104,21 +104,19 @@ export default function LeaderboardPage() {
               return (
                 <div
                   key={entry.id}
-                  className={`flex items-center gap-4 px-6 py-4 transition-colors ${
-                    isMe ? 'bg-primary-900/20' : 'hover:bg-gray-800/50'
-                  }`}
+                  className={`flex items-center gap-4 px-6 py-4 transition-colors ${isMe ? 'bg-[#F5C518]' : 'hover:bg-[#F5C518]/10'
+                    }`}
                 >
                   <div className="w-8 flex justify-center">
                     {getRankIcon(rank)}
                   </div>
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
-                    isMe ? 'bg-primary-700 text-white' : 'bg-gray-800 text-gray-400'
-                  }`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${isMe ? 'bg-primary-700 text-white' : 'bg-gray-800 text-gray-400'
+                    }`}>
                     {entry.user.name?.[0]?.toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className={`font-semibold ${isMe ? 'text-primary-300' : 'text-white'}`}>
+                      <span className={`font-semibold`}>
                         {entry.user.name}
                       </span>
                       {isMe && <span className="text-xs bg-primary-700 text-primary-200 px-2 py-0.5 rounded-full">You</span>}
@@ -131,13 +129,13 @@ export default function LeaderboardPage() {
                         { label: 'Final', pts: entry.finalPoints },
                       ].map(r => r.pts > 0 ? (
                         <span key={r.label} className="text-xs text-gray-500">
-                          {r.label}: <span className="text-gray-300">{r.pts}</span>
+                          {r.label}: <span className="">{r.pts}</span>
                         </span>
                       ) : null)}
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xl font-bold text-white">{entry.totalPoints}</div>
+                    <div className="text-xl font-bold">{entry.totalPoints}</div>
                     <div className="text-xs text-gray-500">points</div>
                   </div>
                 </div>
