@@ -111,7 +111,10 @@ export default function PredictPage() {
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />
+          <div
+            key={i}
+            className="bg-[#9494a8] h-24 bg-gray-100 rounded-2xl animate-pulse"
+          />
         ))}
       </div>
     );
