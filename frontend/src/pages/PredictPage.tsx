@@ -1,59 +1,74 @@
-import React, { useState, useEffect } from 'react';
-import { Target, CheckCircle, Clock, Lock, XCircle, TrendingUp, Trophy } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { matchApi, predictionApi } from '../services/api';
-import type { Match, Prediction, Round } from '../types';
-import { ROUND_LABELS, ROUND_POINTS, ROUNDS_ORDER } from '../types';
+import React, { useState, useEffect } from "react";
+import {
+  Target,
+  CheckCircle,
+  Clock,
+  Lock,
+  XCircle,
+  TrendingUp,
+  Trophy,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import { matchApi, predictionApi } from "../services/api";
+import type { Match, Prediction, Round } from "../types";
+import { ROUND_LABELS, ROUND_POINTS, ROUNDS_ORDER } from "../types";
 
 export default function PredictPage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [predictions, setPredictions] = useState<Record<string, string>>({});
-  const [savedPredictions, setSavedPredictions] = useState<Record<string, Prediction>>({});
-  const [activeRound, setActiveRound] = useState<Round>('ROUND_OF_32');
+  const [savedPredictions, setSavedPredictions] = useState<
+    Record<string, Prediction>
+  >({});
+  const [activeRound, setActiveRound] = useState<Round>("ROUND_OF_32");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      matchApi.getAll(),
-      predictionApi.getMyPredictions(),
-    ]).then(([matchRes, predRes]) => {
-      setMatches(matchRes.data.matches);
-      const predMap: Record<string, Prediction> = {};
-      const localPreds: Record<string, string> = {};
-      predRes.data.predictions.forEach((p: Prediction) => {
-        predMap[p.matchId] = p;
-        localPreds[p.matchId] = p.predictedWinnerId;
-      });
-      setSavedPredictions(predMap);
-      setPredictions(localPreds);
-    }).catch(console.error).finally(() => setLoading(false));
+    Promise.all([matchApi.getAll(), predictionApi.getMyPredictions()])
+      .then(([matchRes, predRes]) => {
+        setMatches(matchRes.data.matches);
+        const predMap: Record<string, Prediction> = {};
+        const localPreds: Record<string, string> = {};
+        predRes.data.predictions.forEach((p: Prediction) => {
+          predMap[p.matchId] = p;
+          localPreds[p.matchId] = p.predictedWinnerId;
+        });
+        setSavedPredictions(predMap);
+        setPredictions(localPreds);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
-  const roundMatches = matches.filter(m => m.round === activeRound);
-  const availableRounds = ROUNDS_ORDER.filter(r => matches.some(m => m.round === r));
+  const roundMatches = matches.filter((m) => m.round === activeRound);
+  const availableRounds = ROUNDS_ORDER.filter((r) =>
+    matches.some((m) => m.round === r),
+  );
 
   const handlePick = (matchId: string, teamId: string) => {
-    const match = matches.find(m => m.id === matchId);
+    const match = matches.find((m) => m.id === matchId);
     if (!match) return;
     if (savedPredictions[matchId]) {
-      toast.error('You have already submitted this prediction');
+      toast.error("You have already submitted this prediction");
       return;
     }
-    if (match.status !== 'SCHEDULED') return;
+    if (match.status !== "SCHEDULED") return;
     if (new Date() >= new Date(match.scheduledAt)) {
-      toast.error('Match has already started');
+      toast.error("Match has already started");
       return;
     }
-    setPredictions(prev => ({ ...prev, [matchId]: teamId }));
+    setPredictions((prev) => ({ ...prev, [matchId]: teamId }));
   };
 
   const handleSaveRound = async () => {
     const bulk = roundMatches
-      .filter(m => predictions[m.id] && !savedPredictions[m.id])
-      .map(m => ({ matchId: m.id, predictedWinnerId: predictions[m.id] }));
+      .filter((m) => predictions[m.id] && !savedPredictions[m.id])
+      .map((m) => ({ matchId: m.id, predictedWinnerId: predictions[m.id] }));
 
-    if (bulk.length === 0) { toast.error('No new predictions to save'); return; }
+    if (bulk.length === 0) {
+      toast.error("No new predictions to save");
+      return;
+    }
 
     setSaving(true);
     try {
@@ -61,45 +76,67 @@ export default function PredictPage() {
       toast.success(`${res.data.saved} predictions saved!`);
       const predRes = await predictionApi.getMyPredictions();
       const predMap: Record<string, Prediction> = {};
-      predRes.data.predictions.forEach((p: Prediction) => { predMap[p.matchId] = p; });
+      predRes.data.predictions.forEach((p: Prediction) => {
+        predMap[p.matchId] = p;
+      });
       setSavedPredictions(predMap);
     } catch {
-      toast.error('Failed to save predictions');
+      toast.error("Failed to save predictions");
     } finally {
       setSaving(false);
     }
   };
 
   const roundStats = {
-    correct: roundMatches.filter(m => savedPredictions[m.id]?.isCorrect === true).length,
-    wrong: roundMatches.filter(m => savedPredictions[m.id]?.isCorrect === false).length,
-    pending: roundMatches.filter(m => savedPredictions[m.id] && savedPredictions[m.id]?.isCorrect === null).length,
-    unsaved: roundMatches.filter(m => predictions[m.id] && !savedPredictions[m.id]).length,
+    correct: roundMatches.filter(
+      (m) => savedPredictions[m.id]?.isCorrect === true,
+    ).length,
+    wrong: roundMatches.filter(
+      (m) => savedPredictions[m.id]?.isCorrect === false,
+    ).length,
+    pending: roundMatches.filter(
+      (m) =>
+        savedPredictions[m.id] && savedPredictions[m.id]?.isCorrect === null,
+    ).length,
+    unsaved: roundMatches.filter(
+      (m) => predictions[m.id] && !savedPredictions[m.id],
+    ).length,
   };
-  const totalPts = roundMatches.reduce((acc, m) => acc + (savedPredictions[m.id]?.pointsEarned || 0), 0);
-
-  if (loading) return (
-    <div className="space-y-4">
-      {[1, 2, 3].map(i => <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />)}
-    </div>
+  const totalPts = roundMatches.reduce(
+    (acc, m) => acc + (savedPredictions[m.id]?.pointsEarned || 0),
+    0,
   );
+
+  if (loading)
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />
+        ))}
+      </div>
+    );
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Make Predictions</h1>
-        <p className="text-gray-500 mt-1">Pick winners for each match before kickoff</p>
+        <p className="text-gray-500 mt-1">
+          Pick winners for each match before kickoff
+        </p>
       </div>
 
       {/* Round tabs */}
       <div className="flex gap-2 flex-wrap">
-        {availableRounds.map(round => {
-          const rMatches = matches.filter(m => m.round === round);
-          const rSaved = rMatches.filter(m => savedPredictions[m.id]).length;
-          const rCorrect = rMatches.filter(m => savedPredictions[m.id]?.isCorrect === true).length;
-          const rWrong = rMatches.filter(m => savedPredictions[m.id]?.isCorrect === false).length;
+        {availableRounds.map((round) => {
+          const rMatches = matches.filter((m) => m.round === round);
+          const rSaved = rMatches.filter((m) => savedPredictions[m.id]).length;
+          const rCorrect = rMatches.filter(
+            (m) => savedPredictions[m.id]?.isCorrect === true,
+          ).length;
+          const rWrong = rMatches.filter(
+            (m) => savedPredictions[m.id]?.isCorrect === false,
+          ).length;
           const complete = rSaved === rMatches.length && rMatches.length > 0;
           const isActive = activeRound === round;
 
@@ -109,20 +146,34 @@ export default function PredictPage() {
               onClick={() => setActiveRound(round)}
               className="px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 border"
               style={{
-                background: isActive ? '#1a1a2e' : '#f3f4f6',
-                color: isActive ? '#F5C518' : '#374151',
-                borderColor: isActive ? '#1a1a2e' : '#e5e7eb',
+                background: isActive ? "#1a1a2e" : "#f3f4f6",
+                color: isActive ? "#F5C518" : "#374151",
+                borderColor: isActive ? "#1a1a2e" : "#e5e7eb",
               }}
             >
               {ROUND_LABELS[round]}
-              {complete
-                ? <CheckCircle className="w-3.5 h-3.5" style={{ color: isActive ? '#4ade80' : '#16a34a' }} />
-                : <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: isActive ? 'rgba(255,255,255,0.15)' : '#e5e7eb', color: isActive ? '#fff' : '#6b7280' }}>
+              {complete ? (
+                <CheckCircle
+                  className="w-3.5 h-3.5"
+                  style={{ color: isActive ? "#4ade80" : "#16a34a" }}
+                />
+              ) : (
+                <span
+                  className="text-xs px-1.5 py-0.5 rounded"
+                  style={{
+                    background: isActive ? "rgba(255,255,255,0.15)" : "#e5e7eb",
+                    color: isActive ? "#fff" : "#6b7280",
+                  }}
+                >
                   {rSaved}/{rMatches.length}
                 </span>
-              }
-              {rCorrect > 0 && <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />}
-              {rWrong > 0 && <span className="w-2 h-2 rounded-full bg-red-500  flex-shrink-0" />}
+              )}
+              {rCorrect > 0 && (
+                <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+              )}
+              {rWrong > 0 && (
+                <span className="w-2 h-2 rounded-full bg-red-500  flex-shrink-0" />
+              )}
             </button>
           );
         })}
@@ -130,33 +181,64 @@ export default function PredictPage() {
 
       {/* Round summary strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-gray-50 border border-gray-200 rounded-2xl p-4">
-        <SummaryPill icon={<Trophy className="w-4 h-4 text-yellow-500" />} label="Points Earned" value={`${totalPts} pts`} valueColor="text-yellow-600" />
-        <SummaryPill icon={<CheckCircle className="w-4 h-4 text-green-500" />} label="Correct" value={`${roundStats.correct}`} valueColor="text-green-600" />
-        <SummaryPill icon={<XCircle className="w-4 h-4 text-red-500" />} label="Wrong" value={`${roundStats.wrong}`} valueColor="text-red-600" />
-        <SummaryPill icon={<Clock className="w-4 h-4 text-blue-500" />} label="Awaiting" value={`${roundStats.pending}`} valueColor="text-blue-600" />
+        <SummaryPill
+          icon={<Trophy className="w-4 h-4 text-yellow-500" />}
+          label="Points Earned"
+          value={`${totalPts} pts`}
+          valueColor="text-yellow-600"
+        />
+        <SummaryPill
+          icon={<CheckCircle className="w-4 h-4 text-green-500" />}
+          label="Correct"
+          value={`${roundStats.correct}`}
+          valueColor="text-green-600"
+        />
+        <SummaryPill
+          icon={<XCircle className="w-4 h-4 text-red-500" />}
+          label="Wrong"
+          value={`${roundStats.wrong}`}
+          valueColor="text-red-600"
+        />
+        <SummaryPill
+          icon={<Clock className="w-4 h-4 text-blue-500" />}
+          label="Awaiting"
+          value={`${roundStats.pending}`}
+          valueColor="text-blue-600"
+        />
       </div>
 
       {/* Points info banner */}
       <div className="flex items-center gap-3 bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3">
         <Target className="w-5 h-5 text-yellow-600 flex-shrink-0" />
         <span className="text-sm text-gray-700">
-          Each correct prediction in{' '}
-          <span className="font-semibold text-yellow-700">{ROUND_LABELS[activeRound]}</span>
-          {' '}earns{' '}
-          <span className="font-bold text-yellow-700">{ROUND_POINTS[activeRound]} points</span>
+          Each correct prediction in{" "}
+          <span className="font-semibold text-yellow-700">
+            {ROUND_LABELS[activeRound]}
+          </span>{" "}
+          earns{" "}
+          <span className="font-bold text-yellow-700">
+            {ROUND_POINTS[activeRound]} points
+          </span>
         </span>
       </div>
 
       {/* Legend */}
       <div className="flex flex-wrap gap-4 text-xs text-gray-500">
         {[
-          { bg: '#dcfce7', border: '#16a34a', label: 'Correct prediction ✓' },
-          { bg: '#fee2e2', border: '#dc2626', label: 'Wrong prediction ✗' },
-          { bg: '#dbeafe', border: '#2563eb', label: 'Predicted, awaiting result' },
-          { bg: '#f3f4f6', border: '#d1d5db', label: 'Not predicted yet' },
+          { bg: "#dcfce7", border: "#16a34a", label: "Correct prediction ✓" },
+          { bg: "#fee2e2", border: "#dc2626", label: "Wrong prediction ✗" },
+          {
+            bg: "#dbeafe",
+            border: "#2563eb",
+            label: "Predicted, awaiting result",
+          },
+          { bg: "#f3f4f6", border: "#d1d5db", label: "Not predicted yet" },
         ].map(({ bg, border, label }) => (
           <div key={label} className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-sm flex-shrink-0" style={{ background: bg, border: `1.5px solid ${border}` }} />
+            <span
+              className="w-3 h-3 rounded-sm flex-shrink-0"
+              style={{ background: bg, border: `1.5px solid ${border}` }}
+            />
             {label}
           </div>
         ))}
@@ -170,52 +252,59 @@ export default function PredictPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {roundMatches.map(match => {
+          {roundMatches.map((match) => {
             const selected = predictions[match.id];
             const saved = savedPredictions[match.id];
-            const isCompleted = match.status === 'COMPLETED';
+            const isCompleted = match.status === "COMPLETED";
             const isStarted = new Date() >= new Date(match.scheduledAt);
-            const locked = isCompleted || isStarted || match.status === 'LIVE' || !!saved;
+            const locked =
+              isCompleted || isStarted || match.status === "LIVE" || !!saved;
 
-            let cardState: 'correct' | 'wrong' | 'predicted' | 'default' = 'default';
-            if (saved?.isCorrect === true) cardState = 'correct';
-            else if (saved?.isCorrect === false) cardState = 'wrong';
-            else if (saved) cardState = 'predicted';
+            let cardState: "correct" | "wrong" | "predicted" | "default" =
+              "default";
+            if (saved?.isCorrect === true) cardState = "correct";
+            else if (saved?.isCorrect === false) cardState = "wrong";
+            else if (saved) cardState = "predicted";
 
             const cardStyle = {
-              correct: { bg: '#f0fdf4', border: '#86efac' },
-              wrong: { bg: '#fff1f2', border: '#fca5a5' },
-              predicted: { bg: '#eff6ff', border: '#93c5fd' },
-              default: { bg: '#ffffff', border: '#e5e7eb' },
+              correct: { bg: "#f0fdf4", border: "#86efac" },
+              wrong: { bg: "#fff1f2", border: "#fca5a5" },
+              predicted: { bg: "#eff6ff", border: "#93c5fd" },
+              default: { bg: "#ffffff", border: "#e5e7eb" },
             }[cardState];
 
             return (
               <div
                 key={match.id}
                 className="rounded-2xl p-4 transition-all"
-                style={{ background: cardStyle.bg, border: `1.5px solid ${cardStyle.border}` }}
+                style={{
+                  background: cardStyle.bg,
+                  border: `1.5px solid ${cardStyle.border}`,
+                }}
               >
                 {/* Card header */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-400">Match #{match.matchNumber}</span>
+                    <span className="text-xs text-gray-400">
+                      Match #{match.matchNumber}
+                    </span>
 
-                    {cardState === 'correct' && (
+                    {cardState === "correct" && (
                       <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase bg-green-100 text-green-700 border border-green-300">
                         <CheckCircle className="w-3 h-3" /> Correct
                       </span>
                     )}
-                    {cardState === 'wrong' && (
+                    {cardState === "wrong" && (
                       <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase bg-red-100 text-red-700 border border-red-300">
                         <XCircle className="w-3 h-3" /> Wrong
                       </span>
                     )}
-                    {cardState === 'predicted' && (
+                    {cardState === "predicted" && (
                       <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase bg-blue-100 text-blue-700 border border-blue-300">
                         <TrendingUp className="w-3 h-3" /> Predicted
                       </span>
                     )}
-                    {cardState === 'default' && !locked && (
+                    {cardState === "default" && !locked && (
                       <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase bg-yellow-100 text-yellow-700 border border-yellow-300">
                         Open
                       </span>
@@ -225,8 +314,11 @@ export default function PredictPage() {
                   <div className="flex items-center gap-2 text-xs text-gray-400">
                     {locked && !saved && <Lock className="w-3 h-3" />}
                     <span>
-                      {new Date(match.scheduledAt).toLocaleDateString('en-GB', {
-                        day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+                      {new Date(match.scheduledAt).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
                       })}
                     </span>
                   </div>
@@ -235,10 +327,14 @@ export default function PredictPage() {
                 {/* Teams */}
                 <div className="grid grid-cols-3 gap-3 items-center">
                   <TeamButton
-                    team={match.homeTeam}
+                    team={match.homeTeam as any}
                     selected={selected === match.homeTeam.id}
                     saved={saved?.predictedWinnerId === match.homeTeam.id}
-                    isWinner={isCompleted ? match.winnerId === match.homeTeam.id : undefined}
+                    isWinner={
+                      isCompleted
+                        ? match.winnerId === match.homeTeam.id
+                        : undefined
+                    }
                     predCorrect={saved?.isCorrect}
                     locked={locked}
                     onClick={() => handlePick(match.id, match.homeTeam.id)}
@@ -253,31 +349,50 @@ export default function PredictPage() {
                           <span className="text-gray-300 mx-1">—</span>
                           {match.awayScore}
                         </div>
-                        <div className="text-[10px] mt-1 tracking-widest uppercase text-gray-400">Full Time</div>
+                        <div className="text-[10px] mt-1 tracking-widest uppercase text-gray-400">
+                          Full Time
+                        </div>
                         {saved && (
-                          <div className={`text-xs mt-1.5 font-bold ${saved.isCorrect ? 'text-green-600' : 'text-red-500'}`}>
-                            {saved.isCorrect ? `+${saved.pointsEarned} pts` : '0 pts'}
+                          <div
+                            className={`text-xs mt-1.5 font-bold ${saved.isCorrect ? "text-green-600" : "text-red-500"}`}
+                          >
+                            {saved.isCorrect
+                              ? `+${saved.pointsEarned} pts`
+                              : "0 pts"}
                           </div>
                         )}
                       </div>
                     ) : (
                       <div>
-                        <div className="font-bold text-base tracking-widest text-gray-300">VS</div>
-                        <div className={`flex items-center justify-center gap-1 mt-1 text-[10px] tracking-wide uppercase font-medium ${locked ? 'text-red-400' : 'text-green-500'}`}>
-                          {locked
-                            ? <><Lock className="w-2.5 h-2.5" /> Locked</>
-                            : <><Clock className="w-2.5 h-2.5" /> Open</>
-                          }
+                        <div className="font-bold text-base tracking-widest text-gray-300">
+                          VS
+                        </div>
+                        <div
+                          className={`flex items-center justify-center gap-1 mt-1 text-[10px] tracking-wide uppercase font-medium ${locked ? "text-red-400" : "text-green-500"}`}
+                        >
+                          {locked ? (
+                            <>
+                              <Lock className="w-2.5 h-2.5" /> Locked
+                            </>
+                          ) : (
+                            <>
+                              <Clock className="w-2.5 h-2.5" /> Open
+                            </>
+                          )}
                         </div>
                       </div>
                     )}
                   </div>
 
                   <TeamButton
-                    team={match.awayTeam}
+                    team={match.awayTeam as any}
                     selected={selected === match.awayTeam.id}
                     saved={saved?.predictedWinnerId === match.awayTeam.id}
-                    isWinner={isCompleted ? match.winnerId === match.awayTeam.id : undefined}
+                    isWinner={
+                      isCompleted
+                        ? match.winnerId === match.awayTeam.id
+                        : undefined
+                    }
                     predCorrect={saved?.isCorrect}
                     locked={locked}
                     onClick={() => handlePick(match.id, match.awayTeam.id)}
@@ -301,17 +416,20 @@ export default function PredictPage() {
       {roundStats.unsaved > 0 && (
         <div className="sticky bottom-4 flex items-center justify-between bg-gray-900 rounded-2xl p-4 shadow-xl border border-gray-700">
           <div className="text-sm text-gray-400">
-            <span className="font-semibold text-white">{roundStats.unsaved}</span> unsaved prediction{roundStats.unsaved > 1 ? 's' : ''}
+            <span className="font-semibold text-white">
+              {roundStats.unsaved}
+            </span>{" "}
+            unsaved prediction{roundStats.unsaved > 1 ? "s" : ""}
           </div>
           <button
             onClick={handleSaveRound}
             disabled={saving}
             className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-opacity disabled:opacity-50"
-            style={{ background: '#F5C518', color: '#1a1a2e' }}
-            onMouseEnter={e => (e.currentTarget.style.opacity = '0.88')}
-            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+            style={{ background: "#F5C518", color: "#1a1a2e" }}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
           >
-            {saving ? 'Saving…' : 'Save Predictions'}
+            {saving ? "Saving…" : "Save Predictions"}
           </button>
         </div>
       )}
@@ -321,7 +439,13 @@ export default function PredictPage() {
 
 // ── TeamButton ──────────────────────────────────────────────────
 function TeamButton({
-  team, selected, saved, isWinner, predCorrect, locked, onClick,
+  team,
+  selected,
+  saved,
+  isWinner,
+  predCorrect,
+  locked,
+  onClick,
 }: {
   team: { id: string; name: string; code: string; flagUrl: string };
   selected: boolean;
@@ -331,13 +455,14 @@ function TeamButton({
   locked: boolean;
   onClick: () => void;
 }) {
-  let bg = '#f9fafb';
-  let border = '#e5e7eb';
+  let bg = "#f9fafb";
+  let border = "#e5e7eb";
   let badge: React.ReactNode = null;
 
   if (saved) {
     if (predCorrect === true) {
-      bg = '#f0fdf4'; border = '#16a34a';
+      bg = "#f0fdf4";
+      border = "#16a34a";
       badge = (
         <div className="flex items-center justify-center gap-1 mt-1.5">
           <CheckCircle className="w-3.5 h-3.5 text-green-600" />
@@ -345,7 +470,8 @@ function TeamButton({
         </div>
       );
     } else if (predCorrect === false) {
-      bg = '#fff1f2'; border = '#dc2626';
+      bg = "#fff1f2";
+      border = "#dc2626";
       badge = (
         <div className="flex items-center justify-center gap-1 mt-1.5">
           <XCircle className="w-3.5 h-3.5 text-red-500" />
@@ -353,20 +479,26 @@ function TeamButton({
         </div>
       );
     } else {
-      bg = '#eff6ff'; border = '#2563eb';
+      bg = "#eff6ff";
+      border = "#2563eb";
       badge = (
         <div className="flex items-center justify-center gap-1 mt-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-          <span className="text-[10px] font-semibold text-blue-600">Picked</span>
+          <span className="text-[10px] font-semibold text-blue-600">
+            Picked
+          </span>
         </div>
       );
     }
   } else if (selected && !locked) {
-    bg = '#fefce8'; border = '#ca8a04';
+    bg = "#fefce8";
+    border = "#ca8a04";
     badge = (
       <div className="flex items-center justify-center gap-1 mt-1.5">
         <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
-        <span className="text-[10px] font-semibold text-yellow-700">Selected</span>
+        <span className="text-[10px] font-semibold text-yellow-700">
+          Selected
+        </span>
       </div>
     );
   }
@@ -379,14 +511,23 @@ function TeamButton({
       style={{
         background: bg,
         border: `1.5px solid ${border}`,
-        cursor: locked ? 'default' : 'pointer',
+        cursor: locked ? "default" : "pointer",
         opacity: locked && !saved && !selected ? 0.55 : 1,
-        boxShadow: saved && predCorrect === true ? '0 0 0 3px rgba(22,163,74,0.15)' :
-          saved && predCorrect === false ? '0 0 0 3px rgba(220,38,38,0.12)' :
-            saved ? '0 0 0 3px rgba(37,99,235,0.12)' : 'none',
+        boxShadow:
+          saved && predCorrect === true
+            ? "0 0 0 3px rgba(22,163,74,0.15)"
+            : saved && predCorrect === false
+              ? "0 0 0 3px rgba(220,38,38,0.12)"
+              : saved
+                ? "0 0 0 3px rgba(37,99,235,0.12)"
+                : "none",
       }}
-      onMouseEnter={e => { if (!locked) e.currentTarget.style.borderColor = '#F5C518'; }}
-      onMouseLeave={e => { if (!locked) e.currentTarget.style.borderColor = border; }}
+      onMouseEnter={(e) => {
+        if (!locked) e.currentTarget.style.borderColor = "#F5C518";
+      }}
+      onMouseLeave={(e) => {
+        if (!locked) e.currentTarget.style.borderColor = border;
+      }}
     >
       <div className="mb-1.5 relative inline-block">
         <img
@@ -399,8 +540,12 @@ function TeamButton({
         )}
       </div>
 
-      <div className="text-sm font-bold text-gray-800 leading-tight">{team.name}</div>
-      <div className="text-[10px] mt-0.5 tracking-widest uppercase text-gray-400">{team.code}</div>
+      <div className="text-sm font-bold text-gray-800 leading-tight">
+        {team.name}
+      </div>
+      <div className="text-[10px] mt-0.5 tracking-widest uppercase text-gray-400">
+        {team.code}
+      </div>
 
       {badge}
     </button>
@@ -409,7 +554,10 @@ function TeamButton({
 
 // ── SummaryPill ─────────────────────────────────────────────────
 function SummaryPill({
-  icon, label, value, valueColor,
+  icon,
+  label,
+  value,
+  valueColor,
 }: {
   icon: React.ReactNode;
   label: string;
