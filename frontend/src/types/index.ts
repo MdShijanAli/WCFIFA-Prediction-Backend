@@ -3,11 +3,13 @@ export interface User {
   name: string;
   phone: string;
   email?: string;
-  gender: 'MALE' | 'FEMALE' | 'OTHER';
+  gender: "MALE" | "FEMALE" | "OTHER";
   dob?: string;
   isPhoneVerified: boolean;
   isEmailVerified: boolean;
   hasPaid: boolean;
+  accessUnlocked: boolean;
+  accessUnlockedAt?: string;
 }
 
 export interface Team {
@@ -18,8 +20,14 @@ export interface Team {
   group?: string;
 }
 
-export type Round = 'ROUND_OF_32' | 'ROUND_OF_16' | 'ROUND_OF_8' | 'QUARTER_FINAL' | 'SEMI_FINAL' | 'FINAL';
-export type MatchStatus = 'SCHEDULED' | 'LIVE' | 'COMPLETED' | 'CANCELLED';
+export type Round =
+  | "ROUND_OF_32"
+  | "ROUND_OF_16"
+  | "ROUND_OF_8"
+  | "QUARTER_FINAL"
+  | "SEMI_FINAL"
+  | "FINAL";
+export type MatchStatus = "SCHEDULED" | "LIVE" | "COMPLETED" | "CANCELLED";
 
 export interface Match {
   id: string;
@@ -59,7 +67,7 @@ export interface LeaderboardEntry {
 }
 
 export interface Payment {
-  status: 'PENDING' | 'COMPLETED' | 'FAILED';
+  status: "PENDING" | "COMPLETED" | "FAILED";
   amount: number;
   currency: string;
   transactionId: string;
@@ -67,12 +75,12 @@ export interface Payment {
 }
 
 export const ROUND_LABELS: Record<Round, string> = {
-  ROUND_OF_32: 'Round of 32',
-  ROUND_OF_16: 'Round of 16',
-  ROUND_OF_8: 'Round of 8',
-  QUARTER_FINAL: 'Quarter Final',
-  SEMI_FINAL: 'Semi Final',
-  FINAL: 'Final',
+  ROUND_OF_32: "Round of 32",
+  ROUND_OF_16: "Round of 16",
+  ROUND_OF_8: "Round of 8",
+  QUARTER_FINAL: "Quarter Final",
+  SEMI_FINAL: "Semi Final",
+  FINAL: "Final",
 };
 
 export const ROUND_POINTS: Record<Round, number> = {
@@ -85,10 +93,10 @@ export const ROUND_POINTS: Record<Round, number> = {
 };
 
 export const ROUNDS_ORDER: Round[] = [
-  'ROUND_OF_32',
-  'ROUND_OF_16',
-  'ROUND_OF_8',
-  'QUARTER_FINAL',
-  'SEMI_FINAL',
-  'FINAL',
+  "ROUND_OF_32",
+  "ROUND_OF_16",
+  "ROUND_OF_8",
+  "QUARTER_FINAL",
+  "SEMI_FINAL",
+  "FINAL",
 ];
